@@ -1,3 +1,5 @@
+src-tauri/target
+
 # Package Managers
 package-lock.json
 pnpm-lock.yaml

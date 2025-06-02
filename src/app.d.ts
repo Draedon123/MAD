@@ -8,10 +8,6 @@ declare global {
     // interface PageState {}
     // interface Platform {}
   }
-
-  type WithChildren = {
-    children?: import("svelte").Snippet;
-  };
 }
 
 export {};
