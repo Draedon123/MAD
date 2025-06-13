@@ -4,6 +4,10 @@
   const MANGA = ["test1", "test2"];
 </script>
 
+<svelte:head>
+  <title>Manga Viewer | Browse</title>
+</svelte:head>
+
 <main>
   <h1>Read</h1>
 

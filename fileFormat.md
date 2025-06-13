@@ -6,7 +6,6 @@ Appended one after another, in order, without anything in between
 
 - Header
 - Chapter Table
-- Chapters
 - Pages
 
 # Interfaces
@@ -17,27 +16,16 @@ uint16 - file format version
 
 ## Chapter Table
 
-uint32 - chapter table byte size
+uint16 - number of chapters
 
 array of:
 
 {
 
-- uint8 - chapter name byte length
-- chapter name, utf-8 encoded
+- chapter name, utf-8 encoded, left-padded with "0" until 8 characters in length
 - uint64 - chapter byte offset
 - uint64 - chapter byte length
-
-}
-
-## Chapters
-
-array of:
-
-{
-
 - uint16 - chapter page count
-- uint32 - first page byte offset
 
 }
 
