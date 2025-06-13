@@ -24,12 +24,13 @@
 
 <style lang="scss">
   @use "sass:color" as colour;
+  @use "/src/styles/scrollbar.scss";
 
   .sidebar {
     $background-colour: #272727;
     $scrollbar-track-colour: colour.mix($background-colour, white, 90%);
-    $scrollbar-button-colour: #b6b6b6;
-    $scrollbar-thumb-colour: #808080;
+
+    @include scrollbar.scrollbar($scrollbar-track-colour);
 
     display: inline-block;
     height: 100vh;
@@ -42,41 +43,6 @@
     overflow: hidden scroll;
     // https://easings.net/#easeOutQuart
     transition: width 1s cubic-bezier(0.25, 1, 0.5, 1);
-
-    &::-webkit-scrollbar {
-      width: 1ch;
-    }
-
-    &::-webkit-scrollbar-track {
-      background-color: $scrollbar-track-colour;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background-color: $scrollbar-thumb-colour;
-      border-radius: 9999px;
-
-      &:hover {
-        background-color: colour.mix($scrollbar-thumb-colour, white, 80%);
-      }
-    }
-
-    &::-webkit-scrollbar-button:vertical {
-      &:start:decrement {
-        background:
-          linear-gradient(120deg, $scrollbar-track-colour 40%, #0000 41%),
-          linear-gradient(240deg, $scrollbar-track-colour 40%, #0000 41%),
-          linear-gradient(0deg, $scrollbar-track-colour 30%, #0000 31%);
-        background-color: $scrollbar-button-colour;
-      }
-
-      &:end:increment {
-        background:
-          linear-gradient(300deg, $scrollbar-track-colour 40%, #0000 41%),
-          linear-gradient(60deg, $scrollbar-track-colour 40%, #0000 41%),
-          linear-gradient(180deg, $scrollbar-track-colour 30%, #0000 31%);
-        background-color: $scrollbar-button-colour;
-      }
-    }
   }
 
   .sidebar.closed {
@@ -131,9 +97,5 @@
 
   .links {
     width: calc(100% - 1ch);
-  }
-
-  .hidden {
-    display: none;
   }
 </style>

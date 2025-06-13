@@ -6,8 +6,16 @@ class FileReader {
     this.destroyed = false;
   }
 
+  public async getOffset(): Promise<number> {
+    return await this.file.seek(0, SeekMode.Current);
+  }
+
   public async setOffset(offset: number): Promise<void> {
     await this.file.seek(offset, SeekMode.Start);
+  }
+
+  public async skip(bytes: number): Promise<void> {
+    await this.file.seek(bytes, SeekMode.Current);
   }
 
   public async readBytes(bytes: number): Promise<Uint8Array> {

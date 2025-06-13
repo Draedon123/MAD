@@ -1,6 +1,7 @@
 import { fetch } from "@tauri-apps/plugin-http";
-import { Manga } from "../Manga";
+import { Manga } from "$lib/Manga";
 import { Downloader } from "./Downloader";
+import * as path from "@tauri-apps/api/path";
 
 class Mangapill extends Downloader {
   private chapterNames: number[] | null = null;
@@ -99,11 +100,15 @@ class Mangapill extends Downloader {
     const mangaNumericID = parseInt(splitURL.at(-2) as string);
     const rawMangaName = this.url.split("/").at(-1) as string;
     const coverImage = await this.getCoverImage();
+    const mangaFilePath = await path.join(
+      "manga",
+      `${this.getMangaName()}.mga`
+    );
     const generator = Manga.create(
       this.getMangaName(),
       chaptersToDownload,
       coverImage,
-      `manga\\${this.getMangaName()}.mga`
+      mangaFilePath
     );
 
     for (const chapter of chaptersToDownload) {

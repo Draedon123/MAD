@@ -12,12 +12,16 @@ type ChapterHeader = {
 
 class ChapterTable {
   public static readonly CHAPTER_HEADER_BYTE_SIZE: number =
-    8 + 3 * BigUint64Array.BYTES_PER_ELEMENT + Uint16Array.BYTES_PER_ELEMENT;
+    8 + 2 * BigUint64Array.BYTES_PER_ELEMENT + Uint16Array.BYTES_PER_ELEMENT;
 
-  constructor(private readonly chapters: ChapterHeader[] = []) {}
+  constructor(public readonly chapters: ChapterHeader[] = []) {}
 
   public sort(): void {
     this.chapters.sort((a, b) => a.name - b.name);
+  }
+
+  public getChapterNames(): number[] {
+    return this.chapters.map((chapter) => chapter.name);
   }
 
   public addChapter(chapter: ChapterHeader): void {
@@ -28,12 +32,18 @@ class ChapterTable {
     }
   }
 
-  public getChapter(index: number): ChapterHeader {
+  public getChapterByIndex(index: number): ChapterHeader {
     return this.chapters.at(index) as ChapterHeader;
+  }
+
+  public getChapterByName(name: number): ChapterHeader | null {
+    return this.chapters.find((chapter) => chapter.name === name) ?? null;
   }
 
   public encode(): Uint8Array {
     const bufferWriter = new BufferWriter(this.byteLength);
+
+    bufferWriter.writeUint16(this.chapters.length);
     for (const chapter of this.chapters) {
       const encodedName = fromString(chapter.name.toString().padStart(8, "0"));
       bufferWriter.writeUint8Array(encodedName);

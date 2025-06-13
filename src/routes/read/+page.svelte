@@ -1,11 +1,17 @@
 <script lang="ts">
   import { BaseDirectory, open, readDir } from "@tauri-apps/plugin-fs";
-  import { Manga } from "../download/Manga";
+  import { Manga } from "$lib/Manga";
   import * as path from "@tauri-apps/api/path";
+  import { onDestroy } from "svelte";
+  import { browser } from "$app/environment";
 
   const mangaList = getManga();
 
   async function getManga(): Promise<Manga[]> {
+    if (!browser) {
+      return [];
+    }
+
     const mangaList: Manga[] = [];
     const directory = await readDir("manga", {
       baseDir: BaseDirectory.AppData,
@@ -29,6 +35,10 @@
 
     return mangaList;
   }
+
+  onDestroy(async () => {
+    await Promise.all((await mangaList).map((manga) => manga.destroy()));
+  });
 </script>
 
 <svelte:head>

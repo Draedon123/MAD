@@ -1,0 +1,42 @@
+@use "sass:color" as colour;
+
+@mixin scrollbar(
+  $track-colour,
+  $button-colour: #b6b6b6,
+  $thumb-colour: #808080
+) {
+  &::-webkit-scrollbar {
+    width: 1ch;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: $track-colour;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: $thumb-colour;
+    border-radius: 9999px;
+
+    &:hover {
+      background-color: colour.mix($thumb-colour, white, 80%);
+    }
+  }
+
+  &::-webkit-scrollbar-button:vertical {
+    &:start:decrement {
+      background:
+        linear-gradient(120deg, $track-colour 40%, #0000 41%),
+        linear-gradient(240deg, $track-colour 40%, #0000 41%),
+        linear-gradient(0deg, $track-colour 30%, #0000 31%);
+      background-color: $button-colour;
+    }
+
+    &:end:increment {
+      background:
+        linear-gradient(300deg, $track-colour 40%, #0000 41%),
+        linear-gradient(60deg, $track-colour 40%, #0000 41%),
+        linear-gradient(180deg, $track-colour 30%, #0000 31%);
+      background-color: $button-colour;
+    }
+  }
+}

@@ -30,7 +30,7 @@
       return;
     }
 
-    await downloader.download(1, 1, handleErrors);
+    (await downloader.download(1, 2, handleErrors)).destroy();
   }
 
   let url: string = $state("");

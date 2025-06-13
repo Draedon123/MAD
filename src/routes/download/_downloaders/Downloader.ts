@@ -1,4 +1,4 @@
-import type { Manga } from "../Manga";
+import type { Manga } from "$lib/Manga";
 
 abstract class Downloader {
   constructor(public readonly url: string) {}

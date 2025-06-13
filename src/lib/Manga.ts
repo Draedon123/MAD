@@ -5,11 +5,19 @@ import {
   SeekMode,
 } from "@tauri-apps/plugin-fs";
 import * as uint8 from "./toUint8";
-import { FileReader } from "$lib/FileReader";
+import { FileReader } from "./FileReader";
 import { ChapterTable, type ChapterHeader } from "./ChapterTable";
 
 type Chapter = {
-  pages: HTMLImageElement[];
+  header: ChapterHeader;
+  pages: Record<
+    number,
+    {
+      src: string;
+      /** relative to first page */
+      offset: number;
+    }
+  >;
 };
 
 type Page = {
@@ -22,9 +30,9 @@ class Manga {
   public static readonly HEADER_BYTE_SIZE: number =
     Uint16Array.BYTES_PER_ELEMENT;
 
-  private readonly cachedChapters: Chapter[];
+  private readonly cache: Map<number, Chapter>;
   private readonly fileReader: FileReader;
-  private chapterTable!: ChapterTable;
+  public chapterTable!: ChapterTable;
   public coverImageSrc!: string;
   private initialised: boolean;
   private destroyed: boolean;
@@ -33,7 +41,7 @@ class Manga {
     public readonly name: string,
     private readonly file: FileHandle
   ) {
-    this.cachedChapters = [];
+    this.cache = new Map();
     this.destroyed = false;
     this.fileReader = new FileReader(file);
     this.initialised = false;
@@ -92,21 +100,19 @@ class Manga {
     });
 
     await file.write(uint8.fromUint16(Manga.VERSION));
-    await file.write(uint8.fromUint16(chapters.length));
 
     console.log("Wrote header");
 
     // placeholder for chapter table
     await file.write(new Uint8Array(chapterTable.byteLength));
 
-    console.log(coverImage.byteLength);
     await file.write(uint8.fromUint32(coverImage.byteLength));
     await file.write(new Uint8Array(coverImage));
 
     const metaDataByteLength =
       Uint32Array.BYTES_PER_ELEMENT + coverImage.byteLength;
 
-    let chapter: ChapterHeader = chapterTable.getChapter(0);
+    let chapter: ChapterHeader = chapterTable.getChapterByIndex(0);
     let chapterIndex = 0;
     let chapterByteOffset =
       Manga.HEADER_BYTE_SIZE + chapterTable.byteLength + metaDataByteLength;
@@ -115,7 +121,7 @@ class Manga {
 
     while (page !== true) {
       if (chapter.name !== page.chapterName) {
-        chapter = chapterTable.getChapter(++chapterIndex);
+        chapter = chapterTable.getChapterByIndex(++chapterIndex);
         chapter.byteOffset = chapterByteOffset;
       }
 
@@ -137,11 +143,7 @@ class Manga {
     }
 
     const encodedChapterTable = chapterTable.encode();
-    await file.seek(
-      // header + chapter table size
-      Uint16Array.BYTES_PER_ELEMENT + Uint16Array.BYTES_PER_ELEMENT,
-      SeekMode.Start
-    );
+    await file.seek(Manga.HEADER_BYTE_SIZE, SeekMode.Start);
     await file.write(encodedChapterTable);
     await file.close();
 
@@ -157,15 +159,98 @@ class Manga {
     return new Manga(mangaName, newFileHandle);
   }
 
-  // @ts-expect-error just boilerplate
-  public async getChapter(): Promise<Chapter> {}
+  public async getAllPages(chapterName: number): Promise<string[]> {
+    const chapter = this.chapterTable.getChapterByName(chapterName);
+    if (chapter === null) {
+      throw new Error(`Could not find chapter ${chapterName}`);
+    }
+
+    const pages: string[] = [];
+
+    for (let i = 1; i <= chapter.pageCount; i++) {
+      pages.push(await this.getPage(chapterName, i));
+    }
+
+    return pages;
+  }
+
+  public async getPage(
+    chapterName: number,
+    pageNumber: number
+  ): Promise<string> {
+    const cachedChapter = this.cache.get(chapterName);
+    const pageInCache =
+      (cachedChapter?.pages?.[pageNumber]?.src ?? "").length > 0;
+    if (pageInCache) {
+      return (cachedChapter as Chapter).pages[pageNumber].src;
+    }
+
+    const chapterHeader =
+      cachedChapter?.header ?? this.chapterTable.getChapterByName(chapterName);
+    if (chapterHeader === null) {
+      throw new Error(`Could not find chapter ${chapterName}`);
+    }
+
+    if (cachedChapter === undefined) {
+      const chapter: Chapter = {
+        header: chapterHeader,
+        pages: {},
+      };
+      this.cache.set(chapterName, chapter);
+
+      let offset = 0;
+      await this.fileReader.setOffset(chapterHeader.byteOffset);
+      for (let i = 1; i <= chapterHeader.pageCount; i++) {
+        const pageSize = await this.fileReader.readUint32();
+
+        chapter.pages[i] = {
+          offset,
+          src: "",
+        };
+
+        offset += Uint32Array.BYTES_PER_ELEMENT + pageSize;
+        await this.fileReader.skip(pageSize);
+      }
+    }
+
+    const chapter = this.cache.get(chapterName) as Chapter;
+    await this.fileReader.setOffset(
+      chapterHeader.byteOffset + chapter.pages[pageNumber].offset
+    );
+    const imageSize = await this.fileReader.readUint32();
+    const image = await this.fileReader.readBytes(imageSize);
+    const blob = new Blob([image]);
+    const url = URL.createObjectURL(blob);
+
+    chapter.pages[pageNumber].src = url;
+
+    return url;
+  }
 
   public async destroy(): Promise<void> {
     if (this.destroyed) {
       return;
     }
 
+    for (const chapter of Object.values(this.cache)) {
+      this.cleanCache(chapter.header.name);
+    }
+
     await this.file.close();
+  }
+
+  public cleanCache(chapterName: number): void {
+    const chapter = this.cache.get(chapterName);
+
+    if (chapter === undefined) {
+      return;
+    }
+
+    for (const page of Object.values(chapter.pages)) {
+      URL.revokeObjectURL(page.src);
+    }
+
+    this.cache.delete(chapterName);
   }
 }
 

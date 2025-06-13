@@ -1,4 +1,5 @@
 @use "/src/styles/fonts/Outfit.scss";
+@use "./scrollbar.scss";
 
 body {
   background-color: #181818;
@@ -8,12 +9,20 @@ body {
 }
 
 main {
+  @include scrollbar.scrollbar(#3d3d3d);
+
   color: white;
-  width: max-content;
+  max-height: 100vh;
+  width: 100%;
+  overflow-y: scroll;
 }
 
 .error {
   display: block;
   color: red;
   font-size: larger;
+}
+
+.hidden {
+  display: none !important;
 }

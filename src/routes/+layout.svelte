@@ -20,7 +20,8 @@
 <style lang="scss">
   .container {
     display: grid;
-    grid-template-columns: max-content 0.98fr;
+    grid-template-columns: max-content 1fr;
     column-gap: 1ch;
+    width: 100vw;
   }
 </style>
