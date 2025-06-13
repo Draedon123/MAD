@@ -6,6 +6,7 @@ Appended one after another, in order, without anything in between
 
 - Header
 - Chapter Table
+- Metadata
 - Pages
 
 # Interfaces
@@ -28,6 +29,11 @@ array of:
 - uint16 - chapter page count
 
 }
+
+## Metadata
+
+uint32 - cover image size
+cover image
 
 ## Pages
 

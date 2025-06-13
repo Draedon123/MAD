@@ -12,7 +12,7 @@ type ChapterHeader = {
 
 class ChapterTable {
   public static readonly CHAPTER_HEADER_BYTE_SIZE: number =
-    8 + 3 * BigUint64Array.BYTES_PER_ELEMENT;
+    8 + 3 * BigUint64Array.BYTES_PER_ELEMENT + Uint16Array.BYTES_PER_ELEMENT;
 
   constructor(private readonly chapters: ChapterHeader[] = []) {}
 

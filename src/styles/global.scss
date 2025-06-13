@@ -9,4 +9,11 @@ body {
 
 main {
   color: white;
+  width: max-content;
+}
+
+.error {
+  display: block;
+  color: red;
+  font-size: larger;
 }

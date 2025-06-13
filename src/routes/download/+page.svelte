@@ -30,7 +30,7 @@
       return;
     }
 
-    await downloader.download(1, 2, handleErrors);
+    await downloader.download(1, 1, handleErrors);
   }
 
   let url: string = $state("");
@@ -65,12 +65,6 @@
 <style lang="scss">
   @use "/src/styles/input.scss";
   @use "/src/styles/button.scss";
-
-  .error {
-    display: block;
-    color: red;
-    font-size: larger;
-  }
 
   input {
     @include input.input;

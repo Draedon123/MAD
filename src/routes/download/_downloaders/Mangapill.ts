@@ -4,11 +4,25 @@ import { Downloader } from "./Downloader";
 
 class Mangapill extends Downloader {
   private chapterNames: number[] | null = null;
+  private webpage: Document | null = null;
 
   private static URL_REGEX: RegExp =
     /(https:\/\/)?mangapill\.com\/manga\/[0-9]+\/[\w-]+/;
   public static override verify(url: string): boolean {
     return Mangapill.URL_REGEX.test(url);
+  }
+
+  private async getWebpage(): Promise<Document> {
+    if (this.webpage !== null) {
+      return this.webpage;
+    }
+
+    const webpageText = await (await fetch(this.url)).text();
+    const webpage = new DOMParser().parseFromString(webpageText, "text/html");
+
+    this.webpage = webpage;
+
+    return webpage;
   }
 
   public override getMangaName(): string {
@@ -25,8 +39,7 @@ class Mangapill extends Downloader {
       return this.chapterNames;
     }
 
-    const webpageText = await (await fetch(this.url)).text();
-    const webpage = new DOMParser().parseFromString(webpageText, "text/html");
+    const webpage = await this.getWebpage();
     const chapters: number[] = [];
 
     const chapterContainer =
@@ -49,6 +62,27 @@ class Mangapill extends Downloader {
     return chapters;
   }
 
+  private async getCoverImage(): Promise<ArrayBuffer> {
+    console.log("Fetching cover image");
+    const webpage = await this.getWebpage();
+    const image = webpage.querySelector("img.object-cover");
+
+    if (!(image instanceof HTMLImageElement)) {
+      throw new Error("Could not get cover image");
+    }
+
+    const imageURL = image.getAttribute("data-src") as string;
+    const arrayBuffer = await (
+      await fetch(imageURL, {
+        headers: {
+          Referer: "https://mangapill.com/",
+        },
+      })
+    ).arrayBuffer();
+
+    return arrayBuffer;
+  }
+
   public override async download(
     from: number,
     to: number,
@@ -64,9 +98,11 @@ class Mangapill extends Downloader {
     const splitURL = this.url.split("/");
     const mangaNumericID = parseInt(splitURL.at(-2) as string);
     const rawMangaName = this.url.split("/").at(-1) as string;
+    const coverImage = await this.getCoverImage();
     const generator = Manga.create(
       this.getMangaName(),
       chaptersToDownload,
+      coverImage,
       `manga\\${this.getMangaName()}.mga`
     );
 

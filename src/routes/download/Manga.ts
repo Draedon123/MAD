@@ -25,8 +25,10 @@ class Manga {
   private readonly cachedChapters: Chapter[];
   private readonly fileReader: FileReader;
   private chapterTable!: ChapterTable;
+  public coverImageSrc!: string;
   private initialised: boolean;
   private destroyed: boolean;
+
   constructor(
     public readonly name: string,
     private readonly file: FileHandle
@@ -44,7 +46,21 @@ class Manga {
     }
 
     this.chapterTable = await ChapterTable.fromFile(this.fileReader);
+    this.coverImageSrc = await this.fetchCoverImageSrc();
     this.initialised = true;
+  }
+
+  private async fetchCoverImageSrc(): Promise<string> {
+    await this.fileReader.setOffset(
+      Manga.HEADER_BYTE_SIZE + this.chapterTable.byteLength
+    );
+
+    const imageSize = await this.fileReader.readUint32();
+    const arrayBuffer = await this.fileReader.readBytes(imageSize);
+    const blob = new Blob([arrayBuffer]);
+    const url = URL.createObjectURL(blob);
+
+    return url;
   }
 
   public async dump(): Promise<void> {
@@ -62,6 +78,7 @@ class Manga {
   public static async *create(
     mangaName: string,
     chapters: number[],
+    coverImage: ArrayBuffer,
     path: string
   ): AsyncGenerator<void, Manga, Page | true> {
     let page: Page | true = yield;
@@ -74,8 +91,6 @@ class Manga {
       baseDir: BaseDirectory.AppData,
     });
 
-    let chapterByteOffset = Manga.HEADER_BYTE_SIZE + chapterTable.byteLength;
-
     await file.write(uint8.fromUint16(Manga.VERSION));
     await file.write(uint8.fromUint16(chapters.length));
 
@@ -84,8 +99,17 @@ class Manga {
     // placeholder for chapter table
     await file.write(new Uint8Array(chapterTable.byteLength));
 
+    console.log(coverImage.byteLength);
+    await file.write(uint8.fromUint32(coverImage.byteLength));
+    await file.write(new Uint8Array(coverImage));
+
+    const metaDataByteLength =
+      Uint32Array.BYTES_PER_ELEMENT + coverImage.byteLength;
+
     let chapter: ChapterHeader = chapterTable.getChapter(0);
     let chapterIndex = 0;
+    let chapterByteOffset =
+      Manga.HEADER_BYTE_SIZE + chapterTable.byteLength + metaDataByteLength;
 
     chapter.byteOffset = chapterByteOffset;
 
@@ -127,6 +151,8 @@ class Manga {
       baseDir: BaseDirectory.AppData,
       read: true,
     });
+
+    console.log("Done");
 
     return new Manga(mangaName, newFileHandle);
   }

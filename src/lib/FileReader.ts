@@ -10,6 +10,14 @@ class FileReader {
     await this.file.seek(offset, SeekMode.Start);
   }
 
+  public async readBytes(bytes: number): Promise<Uint8Array> {
+    const buffer = new Uint8Array(bytes);
+
+    await this.file.read(buffer);
+
+    return buffer;
+  }
+
   public async readUint16(): Promise<number> {
     const buffer = new Uint8Array(2);
     await this.file.read(buffer);
