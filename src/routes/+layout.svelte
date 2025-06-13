@@ -6,11 +6,21 @@
   let { children }: WithChildren = $props();
 </script>
 
-<Navigation>
-  <NavigationLink href="/">Home</NavigationLink>
-  <NavigationLink href="/download">Download</NavigationLink>
-  <NavigationLink href="/read">Read</NavigationLink>
-  <NavigationLink href="/settings">Settings</NavigationLink>
-</Navigation>
+<div class="container">
+  <Navigation>
+    <NavigationLink href="/">Home</NavigationLink>
+    <NavigationLink href="/download">Download</NavigationLink>
+    <NavigationLink href="/read">Read</NavigationLink>
+    <NavigationLink href="/settings">Settings</NavigationLink>
+  </Navigation>
 
-{@render children?.()}
+  {@render children?.()}
+</div>
+
+<style lang="scss">
+  .container {
+    display: grid;
+    grid-template-columns: max-content 0.98fr;
+    column-gap: 1ch;
+  }
+</style>

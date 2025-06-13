@@ -1,11 +1,19 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { Mangapill } from "./_downloaders/Mangapill";
-  import { Manga } from "./Manga";
-  import { BaseDirectory, open } from "@tauri-apps/plugin-fs";
 
-  async function download(): Promise<null | Manga> {
+  function handleErrors(error: string): void {
+    console.error(error);
+    errors.push(error);
+  }
+
+  async function download(): Promise<void> {
     const DOWNLOADERS = [Mangapill];
+
+    errors = [];
+
+    if (url === "") {
+      return;
+    }
 
     let downloader: Mangapill | null = null;
     for (const _downloader of DOWNLOADERS) {
@@ -15,43 +23,64 @@
     }
 
     if (downloader === null) {
-      console.error("No suitable downloader found");
-      return null;
+      const errorMessage = "Link not supported";
+
+      handleErrors(errorMessage);
+
+      return;
     }
 
-    const manga = await downloader.download(1, 2);
-    console.log(manga);
-    await manga.dump();
-    await manga.destroy();
-
-    return manga;
+    await downloader.download(1, 2, handleErrors);
   }
 
   let url: string = $state("");
-
-  onMount(async () => {
-    console.log("mounted");
-    const file = await open("manga\\Oshi No Ko.mga", {
-      baseDir: BaseDirectory.AppData,
-      read: true,
-    });
-
-    const manga = new Manga("Oshi No Ko", file);
-    await manga.dump();
-    await manga.destroy();
-  });
+  let errors: string[] = $state([]);
 </script>
 
 <svelte:head>
   <title>Manga Viewer | Download</title>
 </svelte:head>
-
 <main>
   <h1>Download</h1>
 
   <label for="manga-url">
     <input name="manga-url" bind:value={url} />
+    <button onclick={download}>Download</button>
   </label>
 
-  <button onclick={download}>Download</button>
+  {#each errors as error}
+    <span class="error">
+      Error: {error}
+    </span>
+  {/each}
+
+  <section>
+    <h2>Supported Links</h2>
+    <ul>
+      <li>Mangapill (https://mangapill.com/)</li>
+    </ul>
+  </section>
 </main>
+
+<style lang="scss">
+  @use "/src/styles/input.scss";
+  @use "/src/styles/button.scss";
+
+  .error {
+    display: block;
+    color: red;
+    font-size: larger;
+  }
+
+  input {
+    @include input.input;
+  }
+
+  button {
+    @include button.button;
+
+    & {
+      margin: 0.5em 0;
+    }
+  }
+</style>

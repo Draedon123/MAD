@@ -43,3 +43,4 @@ array of:
 # Notes
 
 - All byte offsets are counted from the start of the file
+- File format uses little endian

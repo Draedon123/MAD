@@ -11,7 +11,8 @@ abstract class Downloader {
   public abstract getChapterNames(): Promise<number[]>;
   public abstract download(
     from: number,
-    to: number // addTo?: Manga
+    to: number,
+    handleError: (error: string) => unknown
   ): Promise<Manga>;
 
   protected static toTitleCase(string: string): string {

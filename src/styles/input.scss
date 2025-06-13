@@ -1,0 +1,27 @@
+@mixin input(
+  $background-colour: #1f1f1f,
+  $border-colour: color-mix(in srgb, $background-colour 85%, #fff 15%)
+) {
+  & {
+    background-color: $background-colour;
+
+    border: 3px solid $border-colour;
+    border-radius: 999px;
+
+    width: 20ch;
+    height: 1.5em;
+
+    text-indent: 0.5em;
+    font-size: large;
+
+    color: #fff;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s;
+  }
+
+  &:hover {
+    background-color: color-mix(in srgb, $background-colour 90%, #fff 10%);
+    border-color: color-mix(in srgb, $border-colour 90%, #fff 10%);
+  }
+}

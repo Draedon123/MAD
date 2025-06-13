@@ -1,9 +1,13 @@
-import type { FileHandle } from "@tauri-apps/plugin-fs";
+import { SeekMode, type FileHandle } from "@tauri-apps/plugin-fs";
 
 class FileReader {
   private destroyed: boolean;
   constructor(private readonly file: FileHandle) {
     this.destroyed = false;
+  }
+
+  public async setOffset(offset: number): Promise<void> {
+    await this.file.seek(offset, SeekMode.Start);
   }
 
   public async readUint16(): Promise<number> {

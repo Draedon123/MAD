@@ -124,8 +124,13 @@
     }
   }
 
+  .top-panel {
+    display: inline-block;
+    width: 100%;
+  }
+
   .links {
-    position: absolute;
+    width: calc(100% - 1ch);
   }
 
   .hidden {

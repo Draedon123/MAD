@@ -82,3 +82,11 @@
     >
   {/if}
 </main>
+
+<style lang="scss">
+  @use "/src/styles/button.scss";
+
+  button {
+    @include button.button;
+  }
+</style>
