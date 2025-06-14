@@ -5,10 +5,12 @@
   import * as paths from "@tauri-apps/api/path";
   import { onMount } from "svelte";
   import { browser } from "$app/environment";
+  import type { MouseEventHandler } from "svelte/elements";
 
   let { data }: PageProps = $props();
 
   const manga = getManga();
+  const eventListenerAbortController = new AbortController();
   let chapter: number = $state(1);
   let showChapters: boolean = $state(false);
 
@@ -51,11 +53,62 @@
     }
   }
 
+  const resizersOnMouseDown: MouseEventHandler<HTMLDivElement> = (
+    event
+  ): void => {
+    event.preventDefault();
+    const element = event.currentTarget.parentElement as HTMLElement;
+    const direction = event.currentTarget.getAttribute("data-direction");
+    const minimumWidth = 100;
+
+    if (direction !== "left" && direction !== "right") {
+      console.warn(`Unspecified resize direction "${direction}"`);
+      return;
+    }
+
+    window.addEventListener("mousemove", resize, {
+      signal: eventListenerAbortController.signal,
+    });
+    window.addEventListener("mouseup", stopResize, {
+      signal: eventListenerAbortController.signal,
+    });
+
+    function resize(event: MouseEvent): void {
+      switch (direction) {
+        case "left": {
+          const width = Math.max(
+            minimumWidth,
+            element.clientWidth -
+              (event.pageX - element.getBoundingClientRect().left) * 2
+          );
+          element.style.width = `${width}px`;
+
+          break;
+        }
+        case "right": {
+          const width = Math.max(
+            minimumWidth,
+            element.clientWidth -
+              (element.getBoundingClientRect().right - event.pageX) * 2
+          );
+          element.style.width = `${width}px`;
+
+          break;
+        }
+      }
+    }
+
+    function stopResize(): void {
+      window.removeEventListener("mousemove", resize);
+    }
+  };
+
   onMount(() => {
     document.addEventListener("keydown", navigateChapters);
 
     return async () => {
       await (await manga)?.destroy();
+      eventListenerAbortController.abort();
       document.removeEventListener("keydown", navigateChapters);
     };
   });
@@ -81,6 +134,7 @@
         }}>{showChapters ? "Collapse" : "Expand"} Chapters</button
       >
       <div class="chapter-select-container" class:hidden={!showChapters}>
+        <!-- eslint-disable-next-line svelte/require-each-key -->
         {#each manga.chapterTable.getChapterNames() as chapterName}
           <button
             onclick={() => {
@@ -91,16 +145,31 @@
         {/each}
       </div>
 
-      <div class="pages">
-        {#await manga.getAllPages(chapter)}
-          Loading pages...
-        {:then pages}
-          {#each pages as pageSrc, i}
-            <img class="page" src={pageSrc} alt="Page {i + 1}" />
-          {/each}
-        {:catch error}
-          {error}
-        {/await}
+      <div class="centre-contents">
+        <div class="pages">
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div
+            class="resizer"
+            data-direction="left"
+            onmousedown={resizersOnMouseDown}
+          ></div>
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div
+            class="resizer"
+            data-direction="right"
+            onmousedown={resizersOnMouseDown}
+          ></div>
+          {#await manga.getAllPages(chapter)}
+            <span class="centre-text">Loading pages...</span>
+          {:then pages}
+            <!-- eslint-disable-next-line svelte/require-each-key -->
+            {#each pages as pageSrc, i}
+              <img class="page" src={pageSrc} alt="Page {i + 1}" />
+            {/each}
+          {:catch error}
+            {error}
+          {/await}
+        </div>
       </div>
     {/if}
   {:catch error}
@@ -135,16 +204,46 @@
     }
   }
 
+  .centre-contents {
+    // - 1ch for left margin of page
+    width: calc(100% - 1ch);
+
+    display: flex;
+    justify-content: center;
+  }
+
+  .centre-text {
+    text-align: center;
+  }
+
   .pages {
-    width: 100%;
+    width: 95%;
     display: flex;
     flex-direction: column;
-    flex-wrap: wrap;
-    align-items: center;
+    position: relative;
 
     img.page {
-      width: 95%;
+      width: 100%;
       margin: 1em 0;
+      pointer-events: none;
+    }
+  }
+
+  .resizer {
+    $width: 2ch;
+    // account for page margins
+    height: calc(100% - 2em);
+    top: 1em;
+    width: $width;
+    cursor: ew-resize;
+    position: absolute;
+
+    &[data-direction="left"] {
+      left: calc(-0.5 * $width);
+    }
+
+    &[data-direction="right"] {
+      right: calc(-0.5 * $width);
     }
   }
 </style>

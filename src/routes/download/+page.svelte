@@ -48,6 +48,7 @@
     <button onclick={download}>Download</button>
   </label>
 
+  <!-- eslint-disable-next-line svelte/require-each-key -->
   {#each errors as error}
     <span class="error">
       Error: {error}

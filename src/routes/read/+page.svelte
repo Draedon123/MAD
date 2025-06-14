@@ -19,16 +19,14 @@
   {#await mangaList}
     Loading manga...
   {:then mangaList}
-    {#if mangaList.length > 0}
-      <div class="mangaContainer">
-        {#each mangaList as manga}
-          {@render MangaComponent(manga)}
-        {/each}
-      </div>
-    {:else}
-      No manga downloaded. Download manga from the
-      <a href="/download">Download Page</a>
-    {/if}
+    <div class="mangaContainer">
+      {#each mangaList as manga (manga.name)}
+        {@render MangaComponent(manga)}
+      {:else}
+        No manga downloaded. Download manga from the
+        <a href="/download">Download Page</a>
+      {/each}
+    </div>
   {:catch error}
     <span class="error">Error loading manga: {error}</span>
   {/await}

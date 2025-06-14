@@ -18,7 +18,7 @@
         <NavigationLink href="/read">Read</NavigationLink>
       {/snippet}
       {#await manga then mangaList}
-        {#each mangaList as manga}
+        {#each mangaList as manga (manga.name)}
           <NavigationLink href="/read/{encodeURIComponent(manga.name)}"
             >{manga.name}</NavigationLink
           >

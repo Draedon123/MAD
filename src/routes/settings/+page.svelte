@@ -22,6 +22,7 @@
     let savedSettings: [string, string][];
     try {
       savedSettings = JSON.parse(fileContents) as [string, string][];
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // settings corrupted
       savedSettings = settingsSchema.map(({ key, value }) => [key, value]);
