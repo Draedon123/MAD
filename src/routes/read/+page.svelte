@@ -1,40 +1,8 @@
 <script lang="ts">
-  import { BaseDirectory, open, readDir } from "@tauri-apps/plugin-fs";
   import { Manga } from "$lib/Manga";
-  import * as path from "@tauri-apps/api/path";
   import { onDestroy } from "svelte";
-  import { browser } from "$app/environment";
 
-  const mangaList = getManga();
-
-  async function getManga(): Promise<Manga[]> {
-    if (!browser) {
-      return [];
-    }
-
-    const mangaList: Manga[] = [];
-    const directory = await readDir("manga", {
-      baseDir: BaseDirectory.AppData,
-    });
-
-    for (const entry of directory) {
-      if (entry.isDirectory || !entry.name.endsWith(".mga")) {
-        continue;
-      }
-
-      const mangaName = entry.name.slice(0, -".mga".length);
-      const file = await open(await path.join("manga", entry.name), {
-        baseDir: BaseDirectory.AppData,
-      });
-
-      const manga = new Manga(mangaName, file);
-      await manga.initialise();
-
-      mangaList.push(manga);
-    }
-
-    return mangaList;
-  }
+  const mangaList = Manga.getAllInDirectory();
 
   onDestroy(async () => {
     await Promise.all((await mangaList).map((manga) => manga.destroy()));
@@ -79,12 +47,14 @@
 {/snippet}
 
 <style lang="scss">
+  @use "/src/styles/colours.scss";
+
   .mangaContainer {
     display: flex;
   }
 
   a {
-    color: #b0b0b0;
+    color: colours.$text-secondary;
     text-decoration: none;
     text-align: center;
     font-size: larger;
@@ -118,7 +88,7 @@
       padding: 0.2rem 0;
 
       &:hover {
-        color: white;
+        color: colours.$text-primary;
       }
     }
   }

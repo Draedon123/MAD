@@ -33,11 +33,13 @@
 {/if}
 
 <style lang="scss">
+  @use "/src/styles/colours.scss";
+
   input[type="text"] {
     background-color: #373737;
     border-color: #474747;
     border-style: unset;
-    color: white;
+    color: colours.$text-primary;
     border-radius: 1em;
 
     height: 1.5em;

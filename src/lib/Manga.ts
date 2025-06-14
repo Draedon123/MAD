@@ -2,11 +2,15 @@ import {
   BaseDirectory,
   FileHandle,
   open,
+  readDir,
   SeekMode,
 } from "@tauri-apps/plugin-fs";
 import * as uint8 from "./toUint8";
 import { FileReader } from "./FileReader";
 import { ChapterTable, type ChapterHeader } from "./ChapterTable";
+import { BufferReader } from "./BufferReader";
+import * as path from "@tauri-apps/api/path";
+import { browser } from "$app/environment";
 
 type Chapter = {
   header: ChapterHeader;
@@ -32,8 +36,11 @@ class Manga {
 
   private readonly cache: Map<number, Chapter>;
   private readonly fileReader: FileReader;
+  private readonly cachedChapterOrder: number[];
+  private readonly maxCacheSize: number;
   public chapterTable!: ChapterTable;
   public coverImageSrc!: string;
+  private pagesRequest: Promise<string[]> | null;
   private initialised: boolean;
   private destroyed: boolean;
 
@@ -45,6 +52,9 @@ class Manga {
     this.destroyed = false;
     this.fileReader = new FileReader(file);
     this.initialised = false;
+    this.maxCacheSize = 10;
+    this.cachedChapterOrder = [];
+    this.pagesRequest = null;
   }
 
   public async initialise(): Promise<void> {
@@ -160,6 +170,22 @@ class Manga {
   }
 
   public async getAllPages(chapterName: number): Promise<string[]> {
+    if (this.pagesRequest === null) {
+      const promise = this._getAllPages(chapterName);
+      this.pagesRequest = promise;
+
+      const pages = await promise;
+      this.pagesRequest = null;
+
+      return pages;
+    } else {
+      await this.pagesRequest;
+
+      return this.getAllPages(chapterName);
+    }
+  }
+
+  private async _getAllPages(chapterName: number): Promise<string[]> {
     const chapter = this.chapterTable.getChapterByName(chapterName);
     if (chapter === null) {
       throw new Error(`Could not find chapter ${chapterName}`);
@@ -174,7 +200,7 @@ class Manga {
     return pages;
   }
 
-  public async getPage(
+  private async getPage(
     chapterName: number,
     pageNumber: number
   ): Promise<string> {
@@ -200,8 +226,13 @@ class Manga {
 
       let offset = 0;
       await this.fileReader.setOffset(chapterHeader.byteOffset);
+      const chapterData = await this.fileReader.readBytes(
+        chapterHeader.byteLength
+      );
+      const bufferReader = new BufferReader(chapterData.buffer);
+
       for (let i = 1; i <= chapterHeader.pageCount; i++) {
-        const pageSize = await this.fileReader.readUint32();
+        const pageSize = bufferReader.readUint32();
 
         chapter.pages[i] = {
           offset,
@@ -209,8 +240,15 @@ class Manga {
         };
 
         offset += Uint32Array.BYTES_PER_ELEMENT + pageSize;
-        await this.fileReader.skip(pageSize);
+        bufferReader.skip(pageSize);
       }
+
+      if (this.cachedChapterOrder.length == this.maxCacheSize) {
+        const chapter = this.cachedChapterOrder.shift() as number;
+        this.cleanCache(chapter);
+      }
+
+      this.cachedChapterOrder.push(chapterHeader.name);
     }
 
     const chapter = this.cache.get(chapterName) as Chapter;
@@ -237,6 +275,35 @@ class Manga {
     }
 
     await this.file.close();
+  }
+
+  public static async getAllInDirectory(): Promise<Manga[]> {
+    if (!browser) {
+      return [];
+    }
+
+    const mangaList: Manga[] = [];
+    const directory = await readDir("manga", {
+      baseDir: BaseDirectory.AppData,
+    });
+
+    for (const entry of directory) {
+      if (entry.isDirectory || !entry.name.endsWith(".mga")) {
+        continue;
+      }
+
+      const mangaName = entry.name.slice(0, -".mga".length);
+      const file = await open(await path.join("manga", entry.name), {
+        baseDir: BaseDirectory.AppData,
+      });
+
+      const manga = new Manga(mangaName, file);
+      await manga.initialise();
+
+      mangaList.push(manga);
+    }
+
+    return mangaList;
   }
 
   public cleanCache(chapterName: number): void {

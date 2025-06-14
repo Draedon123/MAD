@@ -3,7 +3,7 @@
   import { exists, open } from "@tauri-apps/plugin-fs";
   import type { PageProps } from "./$types";
   import * as paths from "@tauri-apps/api/path";
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
   import { browser } from "$app/environment";
 
   let { data }: PageProps = $props();
@@ -51,13 +51,13 @@
     }
   }
 
-  onMount(async () => {
+  onMount(() => {
     document.addEventListener("keydown", navigateChapters);
-  });
 
-  onDestroy(async () => {
-    await (await manga)?.destroy();
-    document.removeEventListener("keydown", navigateChapters);
+    return async () => {
+      await (await manga)?.destroy();
+      document.removeEventListener("keydown", navigateChapters);
+    };
   });
 </script>
 
@@ -110,6 +110,8 @@
 </main>
 
 <style lang="scss">
+  @use "/src/styles/colours.scss";
+
   .chapter-select-container {
     max-width: 95%;
     display: flex;
@@ -119,7 +121,7 @@
 
   .chapter-select {
     background: none;
-    color: white;
+    color: colours.$text-primary;
     border: 1px solid #4d4d4d;
 
     cursor: pointer;
@@ -128,7 +130,8 @@
     width: 10ch;
 
     &:hover {
-      background-color: #3d3d3d;
+      background-color: colours.$primary;
+      color: colours.$text-tertiary;
     }
   }
 

@@ -18,7 +18,7 @@
     border-radius: 9999px;
 
     &:hover {
-      background-color: colour.mix($thumb-colour, white, 80%);
+      background-color: colour.mix($thumb-colour, #fff, 80%);
     }
   }
 

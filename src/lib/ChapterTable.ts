@@ -1,5 +1,6 @@
 import { BufferWriter } from "$lib/BufferWriter";
 import type { FileReader } from "$lib/FileReader";
+import { BufferReader } from "./BufferReader";
 import { Manga } from "./Manga";
 import { fromString } from "./toUint8";
 
@@ -61,11 +62,15 @@ class ChapterTable {
 
     const chapters: ChapterHeader[] = [];
 
+    const bytesToRead = chapterCount * ChapterTable.CHAPTER_HEADER_BYTE_SIZE;
+    const buffer = await fileReader.readBytes(bytesToRead);
+    const bufferReader = new BufferReader(buffer.buffer);
+
     for (let i = 0; i < chapterCount; i++) {
-      const name = parseFloat(await fileReader.readString(8));
-      const byteOffset = await fileReader.readUint64();
-      const byteLength = await fileReader.readUint64();
-      const pageCount = await fileReader.readUint16();
+      const name = parseFloat(bufferReader.readString(8));
+      const byteOffset = bufferReader.readUint64();
+      const byteLength = bufferReader.readUint64();
+      const pageCount = bufferReader.readUint16();
       const chapter = {
         name,
         byteOffset,

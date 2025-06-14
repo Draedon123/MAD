@@ -28,7 +28,7 @@
 
   .sidebar {
     $background-colour: #272727;
-    $scrollbar-track-colour: colour.mix($background-colour, white, 90%);
+    $scrollbar-track-colour: colour.mix($background-colour, #fff, 90%);
 
     @include scrollbar.scrollbar($scrollbar-track-colour);
 
@@ -67,7 +67,7 @@
     &:before,
     &:after {
       content: "";
-      border-right: 4px solid white;
+      border-right: 4px solid #fff;
 
       height: 50%;
       margin-top: -30%;

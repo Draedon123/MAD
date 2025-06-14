@@ -1,15 +1,15 @@
 class BufferWriter {
-  public readonly buffer: ArrayBuffer;
+  public readonly buffer: ArrayBufferLike;
   private readonly dataview: DataView;
   constructor(
-    bufferOrLength: ArrayBuffer | number = new ArrayBuffer(),
+    bufferOrLength: ArrayBufferLike | number = new ArrayBuffer(),
     public endian: "big" | "little" = "little",
     private offset: number = 0
   ) {
     this.buffer =
-      bufferOrLength instanceof ArrayBuffer
-        ? bufferOrLength
-        : new ArrayBuffer(bufferOrLength);
+      typeof bufferOrLength === "number"
+        ? new ArrayBuffer(bufferOrLength)
+        : bufferOrLength;
     this.dataview = new DataView(this.buffer);
   }
 

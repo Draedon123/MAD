@@ -1,5 +1,7 @@
+@use "/src/styles/colours.scss";
+
 @mixin button(
-  $background-colour: #cacaf8,
+  $background-colour: colours.$primary,
   $border-colour: color-mix(in srgb, $background-colour 90%, #000000 10%)
 ) {
   background-color: $background-colour;
@@ -12,7 +14,7 @@
   font-size: large;
   cursor: pointer;
 
-  color: #4f3453;
+  color: colours.$text-tertiary;
   transition:
     background-color 0.3s,
     border-color 0.3s;

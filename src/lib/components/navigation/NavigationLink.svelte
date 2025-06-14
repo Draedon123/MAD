@@ -3,25 +3,32 @@
 
   type Props = {
     href: string;
+    level?: number;
   } & WithChildren;
 
-  const { href, children }: Props = $props();
+  const { href, level = 1, children }: Props = $props();
 </script>
 
 <div class="container">
-  <a class="link" class:active={page.url.pathname === href} {href}>
+  <a
+    class="link level-{level}"
+    class:active={page.url.pathname === href}
+    {href}
+  >
     {@render children?.()}
   </a>
 </div>
 
 <style lang="scss">
+  @use "/src/styles/colours.scss";
+
   .container {
-    padding-top: 5px;
+    padding: 2.5px 0;
     width: 100%;
   }
 
   .link {
-    color: #b0b0b0;
+    color: colours.$text-secondary;
     text-decoration: none;
     border-radius: 0.5rem;
     text-indent: 0.5ch;
@@ -32,16 +39,20 @@
     padding: 0.2rem 0;
 
     &:hover {
-      color: white;
+      color: colours.$text-primary;
     }
   }
 
+  .level-2 {
+    text-indent: 1.5ch;
+  }
+
   a.active {
-    background-color: #cacaf8;
-    color: #4f3453;
+    background-color: colours.$primary;
+    color: colours.$text-tertiary;
 
     &:hover {
-      color: #4f3453;
+      color: colours.$text-tertiary;
     }
   }
 </style>

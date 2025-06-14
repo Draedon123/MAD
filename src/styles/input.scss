@@ -1,3 +1,5 @@
+@use "/src/styles/colours.scss";
+
 @mixin input(
   $background-colour: #1f1f1f,
   $border-colour: color-mix(in srgb, $background-colour 85%, #fff 15%)
@@ -14,7 +16,7 @@
     text-indent: 0.5em;
     font-size: large;
 
-    color: #fff;
+    color: colours.$text-primary;
     transition:
       background-color 0.2s,
       border-color 0.2s;
