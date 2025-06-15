@@ -1,5 +1,3 @@
-import type { Manga } from "$lib/Manga";
-
 abstract class Downloader {
   constructor(public readonly url: string) {}
 
@@ -13,7 +11,7 @@ abstract class Downloader {
     from: number,
     to: number,
     handleError: (error: string) => unknown
-  ): Promise<Manga>;
+  ): Promise<void>;
 
   protected static toTitleCase(string: string): string {
     return string[0].toUpperCase() + string.slice(1);

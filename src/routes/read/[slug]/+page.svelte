@@ -34,12 +34,12 @@
       return null;
     }
 
-    chapter = 1;
-
     const file = await open(filePath, { baseDir: paths.BaseDirectory.AppData });
     const manga = new Manga(mangaName, file);
 
     await manga.initialise();
+
+    chapter = manga.chapterTable.getChapterByIndex(0).name;
 
     mangaToDestroy.push(manga);
 

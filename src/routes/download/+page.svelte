@@ -89,14 +89,7 @@
   ): Promise<void> {
     errors = [];
 
-    const manga = await downloader.download(
-      chapterRange[0],
-      chapterRange[1],
-      handleErrors
-    );
-
-    // only goal of this function is to save the manga to disk
-    await manga.destroy();
+    await downloader.download(chapterRange[0], chapterRange[1], handleErrors);
   }
 </script>
 

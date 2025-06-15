@@ -1,7 +1,7 @@
 import { fetch } from "@tauri-apps/plugin-http";
-import { Manga } from "$lib/Manga";
 import { Downloader } from "./Downloader";
 import * as path from "@tauri-apps/api/path";
+import { MangaFactory } from "$lib/MangaFactory";
 
 class Mangapill extends Downloader {
   private chapterNames: number[] | null = null;
@@ -88,7 +88,7 @@ class Mangapill extends Downloader {
     from: number,
     to: number,
     handleError: (error: string) => unknown
-  ): Promise<Manga> {
+  ): Promise<void> {
     console.log("Fetching chapter names");
     const chapterNames = await this.getChapterNames();
     const chaptersToDownload = chapterNames.slice(
@@ -99,61 +99,81 @@ class Mangapill extends Downloader {
     const splitURL = this.url.split("/");
     const mangaNumericID = parseInt(splitURL.at(-2) as string);
     const rawMangaName = this.url.split("/").at(-1) as string;
+    const mangaName = this.getMangaName();
     const coverImage = await this.getCoverImage();
-    const mangaFilePath = await path.join(
-      "manga",
-      `${this.getMangaName()}.mga`
-    );
-    const generator = Manga.create(
-      this.getMangaName(),
+    const mangaFilePath = await path.join("manga", `${mangaName}.mga`);
+    const factory = new MangaFactory(
+      mangaName,
       chaptersToDownload,
       coverImage,
       mangaFilePath
     );
 
-    for (const chapter of chaptersToDownload) {
-      console.log(`Fetching chapter ${chapter}`);
-      const webpageURL = `https://mangapill.com/chapters/${mangaNumericID}-${1e7 + 1e3 * chapter}/${rawMangaName}-chapter-${chapter}`;
-      const webpageContents = await (await fetch(webpageURL)).text();
+    await factory.initialise();
+
+    const chapterRequests = chaptersToDownload.map((chapter) => {
+      const url = `https://mangapill.com/chapters/${mangaNumericID}-${1e7 + 1e3 * chapter}/${rawMangaName}-chapter-${chapter}`;
+      const promise = fetch(url)
+        .then((response) => response.text())
+        .then((text) => {
+          console.log(`Fetched chapter ${chapter} data`);
+          return text;
+        });
+
+      return promise;
+    });
+
+    const webpageContents = await Promise.all(chapterRequests);
+
+    for (let i = 0; i < chaptersToDownload.length; i++) {
+      const chapter = chaptersToDownload[i];
       const webpage = new DOMParser().parseFromString(
-        webpageContents,
+        webpageContents[i],
         "text/html"
       );
+
+      // @ts-expect-error should be safe, and hopefully frees memory
+      // but maybe it slows it down because it has to move stuff around in
+      // the array?
+      webpageContents[i] = null;
 
       const pages = webpage.querySelectorAll(
         ".js-page"
       ) as NodeListOf<HTMLImageElement>;
 
-      for (let i = 0; i < pages.length; i++) {
-        const page = pages[i];
+      const imageRequests: Promise<ArrayBuffer>[] = [];
+      pages.forEach((page, i) => {
         const url = page.getAttribute("data-src");
         if (url === null) {
           const errorMessage = `Could not get image src for Chapter ${chapter} Page ${i + 1}`;
-
           handleError(errorMessage);
-
-          continue;
+          return;
         }
 
-        const image = await (
-          await fetch(url, {
-            headers: { Referer: "https://mangapill.com/" },
-          })
-        ).arrayBuffer();
+        const promise = fetch(url, {
+          headers: {
+            Referer: "https://mangapill.com/",
+          },
+        }).then((response) => response.arrayBuffer());
 
-        await generator.next({
-          image,
-          chapterName: chapter,
+        imageRequests.push(promise);
+      });
+
+      const images = await Promise.all(imageRequests);
+
+      // no Promise.all() because the pages have to be added in order
+      for (let i = 0; i < images.length; i++) {
+        await factory.addPage({
+          image: images[i],
+          chapter,
         });
+
+        // @ts-expect-error should be safe, and hopefully frees memory
+        images[i] = null;
       }
     }
 
-    const manga = (await generator.next(true)).value;
-    if (!(manga instanceof Manga)) {
-      throw new Error("Generator not finished");
-    }
-
-    return manga;
+    await factory.finish();
   }
 }
 
