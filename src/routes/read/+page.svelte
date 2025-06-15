@@ -1,10 +1,34 @@
 <script lang="ts">
   import { Manga } from "$lib/Manga";
-  import { onDestroy } from "svelte";
+  import {
+    BaseDirectory,
+    watchImmediate,
+    type UnwatchFn,
+  } from "@tauri-apps/plugin-fs";
+  import { onDestroy, onMount } from "svelte";
 
-  const mangaList = Manga.getAllInDirectory();
+  let mangaList: Promise<Manga[]> = $state(Manga.getAllInDirectory());
+  let unwatch: UnwatchFn | null = null;
+
+  onMount(async () => {
+    unwatch = await watchImmediate(
+      "manga",
+      (event) => {
+        if (!event.paths.some((path) => path.endsWith(".mga"))) {
+          return;
+        }
+
+        mangaList = Manga.getAllInDirectory();
+      },
+      { baseDir: BaseDirectory.AppData }
+    );
+  });
 
   onDestroy(async () => {
+    if (unwatch !== null) {
+      unwatch();
+    }
+
     await Promise.all((await mangaList).map((manga) => manga.destroy()));
   });
 </script>
