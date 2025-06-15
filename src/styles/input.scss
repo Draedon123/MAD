@@ -22,8 +22,29 @@
       border-color 0.2s;
   }
 
-  &:hover {
+  &:hover:not([disabled]) {
     background-color: color-mix(in srgb, $background-colour 90%, #fff 10%);
     border-color: color-mix(in srgb, $border-colour 90%, #fff 10%);
+  }
+
+  // https://stackoverflow.com/a/69364368
+  // disable autofill styling
+  // sadly removes the background colour change on hover
+  &:-webkit-autofill {
+    transition-property: background-color, color;
+    transition-delay: 2147483647s;
+  }
+}
+
+@mixin input-disabled(
+  $background-colour: #1f1f1f,
+  $border-colour: color-mix(in srgb, $background-colour 85%, #fff 15%)
+) {
+  &[disabled] {
+    background-color: color-mix(in srgb, $background-colour 85%, #000 15%);
+    border-color: color-mix(in srgb, $border-colour 85%, #000 15%);
+    color: color-mix(in srgb, colours.$text-primary 75%, #000 25%);
+
+    cursor: not-allowed;
   }
 }

@@ -37,8 +37,7 @@
     <img
       class="cover-image"
       src={manga.coverImageSrc}
-      alt="{manga.name} Cover Image"
-    />
+      alt="{manga.name} Cover Image" />
 
     <span class="manga-name">{manga.name}</span>
   </a>
@@ -49,6 +48,8 @@
 
   .mangaContainer {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   a {
@@ -66,6 +67,7 @@
     width: min(100%, 200px);
 
     padding: 1ch;
+    margin: 0.5ch;
 
     border: 2px solid #3d3d3d;
     border-radius: 1em;

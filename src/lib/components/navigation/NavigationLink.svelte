@@ -3,19 +3,14 @@
 
   type Props = {
     href: string;
-    level?: number;
   } & WithChildren;
 
-  const { href, level = 1, children }: Props = $props();
+  const { href, children }: Props = $props();
 </script>
 
 <div class="container">
-  <a
-    class="link level-{level}"
-    class:active={page.url.pathname === href}
-    {href}
-  >
-    {@render children?.()}
+  <a class="link" class:active={page.url.pathname === href} {href}>
+    <span class="indent">{@render children?.()}</span>
   </a>
 </div>
 
@@ -31,7 +26,6 @@
     color: colours.$text-secondary;
     text-decoration: none;
     border-radius: 0.5rem;
-    text-indent: 0.5ch;
     font-size: 1.3rem;
 
     display: block;
@@ -43,8 +37,12 @@
     }
   }
 
-  .level-2 {
-    text-indent: 1.5ch;
+  .indent {
+    $indent: 1ch;
+
+    display: block;
+    width: calc(100% - $indent);
+    margin-left: $indent;
   }
 
   a.active {

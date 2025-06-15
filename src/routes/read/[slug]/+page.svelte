@@ -6,6 +6,7 @@
   import { onMount } from "svelte";
   import { browser } from "$app/environment";
   import type { MouseEventHandler } from "svelte/elements";
+  import ChapterSelector from "$lib/components/chapterSelection/ChapterSelector.svelte";
 
   let { data }: PageProps = $props();
 
@@ -131,18 +132,13 @@
         class="chapter-select-toggle"
         onclick={() => {
           showChapters = !showChapters;
-        }}>{showChapters ? "Collapse" : "Expand"} Chapters</button
-      >
+        }}>{showChapters ? "Collapse" : "Expand"} Chapters</button>
       <div class="chapter-select-container" class:hidden={!showChapters}>
-        <!-- eslint-disable-next-line svelte/require-each-key -->
-        {#each manga.chapterTable.getChapterNames() as chapterName}
-          <button
-            onclick={() => {
-              chapter = chapterName;
-            }}
-            class="chapter-select">{chapterName}</button
-          >
-        {/each}
+        <ChapterSelector
+          chapterNames={manga.chapterTable.getChapterNames()}
+          chapterOnClick={(chapterName) => {
+            chapter = chapterName;
+          }} />
       </div>
 
       <div class="centre-contents">
@@ -151,14 +147,14 @@
           <div
             class="resizer"
             data-direction="left"
-            onmousedown={resizersOnMouseDown}
-          ></div>
+            onmousedown={resizersOnMouseDown}>
+          </div>
           <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div
             class="resizer"
             data-direction="right"
-            onmousedown={resizersOnMouseDown}
-          ></div>
+            onmousedown={resizersOnMouseDown}>
+          </div>
           {#await manga.getAllPages(chapter)}
             <span class="centre-text">Loading pages...</span>
           {:then pages}
@@ -179,29 +175,8 @@
 </main>
 
 <style lang="scss">
-  @use "/src/styles/colours.scss";
-
   .chapter-select-container {
     max-width: 95%;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
-  .chapter-select {
-    background: none;
-    color: colours.$text-primary;
-    border: 1px solid #4d4d4d;
-
-    cursor: pointer;
-
-    height: 2em;
-    width: 10ch;
-
-    &:hover {
-      background-color: colours.$primary;
-      color: colours.$text-tertiary;
-    }
   }
 
   .centre-contents {

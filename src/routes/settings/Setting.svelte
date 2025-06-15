@@ -27,8 +27,7 @@
     <input
       name="setting-{setting.key}"
       type="text"
-      bind:value={setting.value}
-    />
+      bind:value={setting.value} />
   </label>
 {/if}
 

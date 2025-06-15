@@ -8,6 +8,7 @@
     "fs:allow-open",
     "fs:allow-seek",
     "fs:read-all",
+    "fs:allow-watch",
     {
       "identifier": "fs:scope",
       "allow": [{ "path": "$APPCONFIG/**/*" }, { "path": "$APPDATA/**/*" }]

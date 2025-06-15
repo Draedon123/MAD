@@ -14,8 +14,7 @@
       aria-label="Close"
       onclick={() => {
         closed = !closed;
-      }}
-    ></button>
+      }}></button>
   </div>
   <div class="links" class:hidden={closed}>
     {@render children?.()}

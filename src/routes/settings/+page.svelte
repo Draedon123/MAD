@@ -79,8 +79,7 @@
         // @ts-expect-error in this branch of the if statement,
         // settings cannot be null
         saveSettings(settings);
-      }}>Save</button
-    >
+      }}>Save</button>
   {/if}
 </main>
 
