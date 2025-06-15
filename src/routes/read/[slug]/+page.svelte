@@ -10,26 +10,38 @@
 
   let { data }: PageProps = $props();
 
-  const manga = getManga();
-  const eventListenerAbortController = new AbortController();
+  let manga = $derived(getManga(data.mangaName));
+  const mangaToDestroy: Manga[] = $state([]);
   let chapter: number = $state(1);
   let showChapters: boolean = $state(false);
+  const eventListenerAbortController = new AbortController();
 
-  async function getManga(): Promise<Manga | null> {
+  $effect(() => {
+    if (mangaToDestroy.length > 1) {
+      mangaToDestroy[0].destroy();
+      mangaToDestroy.shift();
+    }
+  });
+
+  async function getManga(mangaName: string): Promise<Manga | null> {
     if (!browser) {
       return null;
     }
 
-    const filePath = await paths.join("manga", `${data.mangaName}.mga`);
+    const filePath = await paths.join("manga", `${mangaName}.mga`);
 
     if (!(await exists(filePath, { baseDir: paths.BaseDirectory.AppData }))) {
       return null;
     }
 
+    chapter = 1;
+
     const file = await open(filePath, { baseDir: paths.BaseDirectory.AppData });
-    const manga = new Manga(data.mangaName, file);
+    const manga = new Manga(mangaName, file);
 
     await manga.initialise();
+
+    mangaToDestroy.push(manga);
 
     return manga;
   }
@@ -175,8 +187,19 @@
 </main>
 
 <style lang="scss">
+  @use "/src/styles/button.scss";
+
   .chapter-select-container {
     max-width: 95%;
+  }
+
+  .chapter-select-toggle {
+    @include button.button;
+
+    & {
+      height: 1.5em;
+      margin-bottom: 0.5em;
+    }
   }
 
   .centre-contents {
@@ -199,7 +222,7 @@
 
     img.page {
       width: 100%;
-      margin: 1em 0;
+      margin: 1% 0;
       pointer-events: none;
     }
   }

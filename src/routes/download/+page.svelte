@@ -43,27 +43,26 @@
       disableInputs = true;
       // hide chapter select
       chapterNames = [];
-      chapterDownloadRange = [1, 1];
       statusMessage = "Downloading manga. Do not leave this page";
+
       await download(chapterDownloadRange, downloader);
 
+      chapterDownloadRange = [1, 1];
       statusMessage = "Manga finished downloading";
       disableInputs = false;
       readyToDownload = false;
     } else {
       disableInputs = true;
-      await getChapters(downloader);
+
+      statusMessage = "Fetching chapter names";
+      chapterNames = await downloader.getChapterNames();
+      statusMessage =
+        "Select chapters to download. Click download button again to download selected range";
+
       lastURL = url;
       disableInputs = false;
       readyToDownload = true;
     }
-  }
-
-  async function getChapters(downloader: Downloader): Promise<void> {
-    statusMessage = "Fetching chapter names";
-    chapterNames = await downloader.getChapterNames();
-    statusMessage =
-      "Select chapters to download. Click download button again to download selected range";
   }
 
   function getDownloader(url: string) {
@@ -80,10 +79,7 @@
   }
 
   function chapterSelectorOnClick(chapterName: number): void {
-    if (chapterDownloadRange.length >= 2) {
-      chapterDownloadRange.shift();
-    }
-
+    chapterDownloadRange.shift();
     chapterDownloadRange.push(chapterName);
   }
 
@@ -93,9 +89,14 @@
   ): Promise<void> {
     errors = [];
 
-    (
-      await downloader.download(chapterRange[0], chapterRange[1], handleErrors)
-    ).destroy();
+    const manga = await downloader.download(
+      chapterRange[0],
+      chapterRange[1],
+      handleErrors
+    );
+
+    // only goal of this function is to save the manga to disk
+    await manga.destroy();
   }
 </script>
 

@@ -93,82 +93,6 @@ class Manga {
     console.log({ version, chapterTable: this.chapterTable });
   }
 
-  public static async *create(
-    mangaName: string,
-    chapters: number[],
-    coverImage: ArrayBuffer,
-    path: string
-  ): AsyncGenerator<void, Manga, Page | true> {
-    let page: Page | true = yield;
-
-    const chapterTable = ChapterTable.fromChapterNamesArray(chapters);
-    const file = await open(path, {
-      write: true,
-      create: true,
-      truncate: true,
-      baseDir: BaseDirectory.AppData,
-    });
-
-    await file.write(uint8.fromUint16(Manga.VERSION));
-
-    console.log("Wrote header");
-
-    // placeholder for chapter table
-    await file.write(new Uint8Array(chapterTable.byteLength));
-
-    await file.write(uint8.fromUint32(coverImage.byteLength));
-    await file.write(new Uint8Array(coverImage));
-
-    const metaDataByteLength =
-      Uint32Array.BYTES_PER_ELEMENT + coverImage.byteLength;
-
-    let chapter: ChapterHeader = chapterTable.getChapterByIndex(0);
-    let chapterIndex = 0;
-    let chapterByteOffset =
-      Manga.HEADER_BYTE_SIZE + chapterTable.byteLength + metaDataByteLength;
-
-    chapter.byteOffset = chapterByteOffset;
-
-    while (page !== true) {
-      if (chapter.name !== page.chapterName) {
-        chapter = chapterTable.getChapterByIndex(++chapterIndex);
-        chapter.byteOffset = chapterByteOffset;
-      }
-
-      const pageByteLength = uint8.fromUint32(page.image.byteLength);
-      await file.write(pageByteLength);
-      await file.write(new Uint8Array(page.image));
-
-      const totalPageSize =
-        page.image.byteLength + Uint32Array.BYTES_PER_ELEMENT;
-
-      chapterByteOffset += totalPageSize;
-      chapter.byteLength += totalPageSize;
-      chapter.pageCount += 1;
-
-      console.log(
-        `Wrote Chapter ${page.chapterName} Page ${chapter.pageCount}`
-      );
-      page = yield;
-    }
-
-    const encodedChapterTable = chapterTable.encode();
-    await file.seek(Manga.HEADER_BYTE_SIZE, SeekMode.Start);
-    await file.write(encodedChapterTable);
-    await file.close();
-
-    console.log("Wrote chapter table");
-
-    const newFileHandle = await open(path, {
-      baseDir: BaseDirectory.AppData,
-      read: true,
-    });
-
-    console.log("Done");
-
-    return new Manga(mangaName, newFileHandle);
-  }
-
   public async getAllPages(chapterName: number): Promise<string[]> {
     if (this.pagesRequest === null) {
       const promise = this._getAllPages(chapterName);
@@ -274,7 +198,25 @@ class Manga {
       this.cleanCache(chapter.header.name);
     }
 
+    if (this.coverImageSrc) {
+      URL.revokeObjectURL(this.coverImageSrc);
+    }
+
     await this.file.close();
+  }
+
+  public cleanCache(chapterName: number): void {
+    const chapter = this.cache.get(chapterName);
+
+    if (chapter === undefined) {
+      return;
+    }
+
+    for (const page of Object.values(chapter.pages)) {
+      URL.revokeObjectURL(page.src);
+    }
+
+    this.cache.delete(chapterName);
   }
 
   public static async getAllInDirectory(): Promise<Manga[]> {
@@ -306,18 +248,80 @@ class Manga {
     return mangaList;
   }
 
-  public cleanCache(chapterName: number): void {
-    const chapter = this.cache.get(chapterName);
+  public static async *create(
+    mangaName: string,
+    chapters: number[],
+    coverImage: ArrayBuffer,
+    path: string
+  ): AsyncGenerator<void, Manga, Page | true> {
+    let page: Page | true = yield;
 
-    if (chapter === undefined) {
-      return;
+    const chapterTable = ChapterTable.fromChapterNamesArray(chapters);
+    const file = await open(path, {
+      write: true,
+      create: true,
+      truncate: true,
+      baseDir: BaseDirectory.AppData,
+    });
+
+    await file.write(uint8.fromUint16(Manga.VERSION));
+
+    console.log("Wrote header");
+
+    // placeholder for chapter table
+    await file.write(new Uint8Array(chapterTable.byteLength));
+
+    await file.write(uint8.fromUint32(coverImage.byteLength));
+    await file.write(new Uint8Array(coverImage));
+
+    const metaDataByteLength =
+      Uint32Array.BYTES_PER_ELEMENT + coverImage.byteLength;
+
+    let chapter: ChapterHeader = chapterTable.getChapterByIndex(0);
+    let chapterIndex = 0;
+    let chapterByteOffset =
+      Manga.HEADER_BYTE_SIZE + chapterTable.byteLength + metaDataByteLength;
+
+    chapter.byteOffset = chapterByteOffset;
+
+    while (page !== true) {
+      if (chapter.name !== page.chapterName) {
+        chapter = chapterTable.getChapterByIndex(++chapterIndex);
+        chapter.byteOffset = chapterByteOffset;
+      }
+
+      const pageByteLength = uint8.fromUint32(page.image.byteLength);
+      await file.write(pageByteLength);
+      await file.write(new Uint8Array(page.image));
+
+      const totalPageSize =
+        page.image.byteLength + Uint32Array.BYTES_PER_ELEMENT;
+
+      chapterByteOffset += totalPageSize;
+      chapter.byteLength += totalPageSize;
+      chapter.pageCount += 1;
+
+      console.log(
+        `Wrote Chapter ${page.chapterName} Page ${chapter.pageCount}`
+      );
+      page = yield;
     }
 
-    for (const page of Object.values(chapter.pages)) {
-      URL.revokeObjectURL(page.src);
-    }
+    const encodedChapterTable = chapterTable.encode();
+    await file.seek(Manga.HEADER_BYTE_SIZE, SeekMode.Start);
+    await file.write(encodedChapterTable);
+    await file.close();
 
-    this.cache.delete(chapterName);
+    console.log("Wrote chapter table");
+
+    const newFileHandle = await open(path, {
+      baseDir: BaseDirectory.AppData,
+      read: true,
+    });
+
+    console.log("Done");
+
+    return new Manga(mangaName, newFileHandle);
   }
 }
 

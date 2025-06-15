@@ -38,7 +38,7 @@
   }
 
   .indent {
-    $indent: 1ch;
+    $indent: 0.5ch;
 
     display: block;
     width: calc(100% - $indent);

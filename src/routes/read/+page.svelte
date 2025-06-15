@@ -100,6 +100,7 @@
 
     &:hover {
       scale: 1.05;
+      color: colours.$text-primary;
     }
 
     .cover-image {
@@ -110,10 +111,6 @@
     .manga-name {
       width: 100%;
       padding: 0.2rem 0;
-
-      &:hover {
-        color: colours.$text-primary;
-      }
     }
   }
 </style>
