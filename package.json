@@ -7,12 +7,14 @@
     "dev": "vite dev",
     "prebuild": "npm run prepare && npm run lint && npm run format",
     "build": "vite build",
+    "postbuild": "npm run minify",
     "preview": "vite preview",
     "prepare": "svelte-kit sync || echo ''",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "format": "prettier --write .",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "minify": "node scripts/minify.cjs"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.5",
@@ -25,11 +27,13 @@
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-svelte": "^3.0.0",
     "globals": "^16.0.0",
+    "html-minifier-terser": "^7.2.0",
     "prettier": "^3.4.2",
     "prettier-plugin-svelte": "^3.3.3",
     "sass-embedded": "^1.89.1",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
+    "terser": "^5.42.0",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.20.0",
     "vite": "^6.2.6"
