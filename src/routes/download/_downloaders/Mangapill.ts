@@ -91,7 +91,6 @@ class Mangapill extends Downloader {
     const chapterNames = await this.getChapterNames();
     const chaptersToDownload = chapterNames.slice(from, to + 1);
 
-    const splitURL = this.url.split("/");
     const mangaName = this.getMangaName();
     const coverImage = await this.getCoverImage();
     const mangaFilePath = await path.join("manga", `${mangaName}.mga`);

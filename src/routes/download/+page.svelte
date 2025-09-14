@@ -6,7 +6,7 @@
   let url: string = $state("");
   let statusMessage: string = $state("");
   let errors: string[] = $state([]);
-  let chapterNames: number[] = $state([]);
+  let chapterNames: string[] = $state([]);
   let chapterDownloadRange: [number, number] = $state([0, 0]);
   let disableInputs: boolean = $state(false);
   let readyToDownload: boolean = false;

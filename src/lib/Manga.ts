@@ -1,10 +1,4 @@
-import {
-  BaseDirectory,
-  exists,
-  FileHandle,
-  open,
-  readDir,
-} from "@tauri-apps/plugin-fs";
+import { FileHandle, open } from "@tauri-apps/plugin-fs";
 import { FileReader } from "./FileReader";
 import { ChapterTable, type ChapterHeader } from "./ChapterTable";
 import { BufferReader } from "./BufferReader";
