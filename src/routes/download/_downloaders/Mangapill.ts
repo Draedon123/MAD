@@ -4,7 +4,7 @@ import * as path from "@tauri-apps/api/path";
 import { MangaFactory } from "$lib/MangaFactory";
 
 class Mangapill extends Downloader {
-  private chapterNames: number[] | null = null;
+  private chapterNames: string[] | null = null;
   private webpage: Document | null = null;
 
   private static URL_REGEX: RegExp =
@@ -35,13 +35,13 @@ class Mangapill extends Downloader {
     );
   }
 
-  public override async getChapterNames(): Promise<number[]> {
+  public override async getChapterNames(): Promise<string[]> {
     if (this.chapterNames !== null) {
       return this.chapterNames;
     }
 
     const webpage = await this.getWebpage();
-    const chapters: number[] = [];
+    const chapters: string[] = [];
 
     const chapterContainer =
       webpage.getElementById("chapters")?.children[0] ?? null;
@@ -51,11 +51,9 @@ class Mangapill extends Downloader {
 
     for (let i = chapterContainer.children.length - 1; i >= 0; i--) {
       const child = chapterContainer.children[i];
-      const textContent = child.textContent as string;
-      const chapterString = textContent.slice("Chapter ".length);
-      const chapterNumber = parseFloat(chapterString);
+      const chapterName = child.textContent as string;
 
-      chapters.push(chapterNumber);
+      chapters.push(chapterName);
     }
 
     this.chapterNames = chapters;
@@ -94,11 +92,23 @@ class Mangapill extends Downloader {
     const chaptersToDownload = chapterNames.slice(from, to + 1);
 
     const splitURL = this.url.split("/");
-    const mangaNumericID = parseInt(splitURL.at(-2) as string);
-    const rawMangaName = this.url.split("/").at(-1) as string;
     const mangaName = this.getMangaName();
     const coverImage = await this.getCoverImage();
     const mangaFilePath = await path.join("manga", `${mangaName}.mga`);
+
+    const webpage = await this.getWebpage();
+    const chapterContainer =
+      webpage.getElementById("chapters")?.children[0] ?? null;
+    if (chapterContainer === null) {
+      throw new Error("Could not find chapter container");
+    }
+    // https://mangapill.com/chapters/{id}/{chapter} -> {id}/{chapter}
+    const chapterLinks = [...chapterContainer.querySelectorAll("a")].map(
+      (_, i, array) =>
+        // reverse order, because Mangapill lists chapters in reverse order
+        array[array.length - i - 1].href.split("/chapters/").at(-1) as string
+    );
+
     const factory = new MangaFactory(
       mangaName,
       chaptersToDownload,
@@ -108,8 +118,9 @@ class Mangapill extends Downloader {
 
     await factory.initialise();
 
-    const chapterRequests = chaptersToDownload.map((chapter) => {
-      const url = `https://mangapill.com/chapters/${mangaNumericID}-${1e7 + 1e3 * chapter}/${rawMangaName}-chapter-${chapter}`;
+    const chapterRequests = chaptersToDownload.map((chapter, i) => {
+      // this works because the downloaded chapters are guaranteed to be contiguous
+      const url = `https://mangapill.com/chapters/${chapterLinks[from + i]}`;
       const promise = fetch(url)
         .then((response) => response.text())
         .then((text) => {

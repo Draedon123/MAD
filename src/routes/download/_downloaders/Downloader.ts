@@ -6,7 +6,7 @@ abstract class Downloader {
     throw new Error("Method not implemented");
   }
   public abstract getMangaName(): Promise<string> | string;
-  public abstract getChapterNames(): Promise<number[]>;
+  public abstract getChapterNames(): Promise<string[]>;
   /**
    * @param { number } from chapter index
    * @param { number } to chapter index

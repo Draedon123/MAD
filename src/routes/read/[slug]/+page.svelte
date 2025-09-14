@@ -69,7 +69,7 @@
         break;
       }
       case "ArrowRight": {
-        if ($chapterIndex >= resolvedManga.chapterTable.chapters.length) {
+        if ($chapterIndex >= resolvedManga.chapterTable.chapters.length - 1) {
           break;
         }
 
@@ -152,9 +152,8 @@
       <span class="error">Manga not found</span>
     {:else}
       <h1>
-        Reading {data.mangaName} Chapter {manga.chapterTable.getChapterByIndex(
-          $chapterIndex
-        ).name}
+        Reading {data.mangaName}
+        {manga.chapterTable.getChapterByIndex($chapterIndex).name}
       </h1>
       <button
         class="chapter-select-toggle"

@@ -19,6 +19,14 @@ class FileReader {
   }
 
   public async readBytes(bytes: number): Promise<Uint8Array<ArrayBuffer>> {
+    const FIFTY_MEGABYTES = 50 * 1024 * 1024;
+    // prevent crashing
+    if (import.meta.env.DEV && bytes > FIFTY_MEGABYTES) {
+      throw new Error(
+        `Potentially incorrect number of bytes being read (${bytes})`
+      );
+    }
+
     const buffer = new Uint8Array(bytes);
 
     await this.file.read(buffer);

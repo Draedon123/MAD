@@ -5,7 +5,7 @@ import { Manga } from "./Manga";
 import { fromString } from "./toUint8";
 
 type ChapterHeader = {
-  name: number;
+  name: string;
   byteOffset: number;
   byteLength: number;
   pageCount: number;
@@ -13,41 +13,35 @@ type ChapterHeader = {
 
 class ChapterTable {
   public static readonly CHAPTER_HEADER_BYTE_SIZE: number =
-    8 + 2 * BigUint64Array.BYTES_PER_ELEMENT + Uint16Array.BYTES_PER_ELEMENT;
+    // Chapter name length
+    Uint8Array.BYTES_PER_ELEMENT +
+    // Chapter byte offset and length
+    2 * BigUint64Array.BYTES_PER_ELEMENT +
+    // Page count
+    Uint16Array.BYTES_PER_ELEMENT;
 
   constructor(public readonly chapters: ChapterHeader[] = []) {}
 
-  public sort(): void {
-    this.chapters.sort((a, b) => a.name - b.name);
-  }
-
-  public getChapterNames(): number[] {
+  public getChapterNames(): string[] {
     return this.chapters.map((chapter) => chapter.name);
-  }
-
-  public addChapter(chapter: ChapterHeader): void {
-    this.chapters.push(chapter);
-
-    if ((this.chapters.at(-2)?.name ?? -1) > chapter.name) {
-      this.sort();
-    }
   }
 
   public getChapterByIndex(index: number): ChapterHeader {
     return this.chapters[index] as ChapterHeader;
   }
 
-  public getChapterByName(name: number): ChapterHeader | null {
+  public getChapterByName(name: string): ChapterHeader | null {
     return this.chapters.find((chapter) => chapter.name === name) ?? null;
   }
 
   public encode(): Uint8Array {
     const bufferWriter = new BufferWriter(this.byteLength);
 
+    bufferWriter.writeUint32(this.byteLength);
     bufferWriter.writeUint16(this.chapters.length);
     for (const chapter of this.chapters) {
-      const encodedName = fromString(chapter.name.toString().padStart(8, "0"));
-      bufferWriter.writeUint8Array(encodedName);
+      bufferWriter.writeUint8(chapter.name.length);
+      bufferWriter.writeUint8Array(fromString(chapter.name));
       bufferWriter.writeUint64(chapter.byteOffset);
       bufferWriter.writeUint64(chapter.byteLength);
       bufferWriter.writeUint16(chapter.pageCount);
@@ -58,20 +52,23 @@ class ChapterTable {
 
   public static async fromFile(fileReader: FileReader): Promise<ChapterTable> {
     await fileReader.setOffset(Manga.HEADER_BYTE_SIZE);
-    const chapterCount = await fileReader.readUint16();
+    const byteLength = await fileReader.readUint32();
 
     const chapters: ChapterHeader[] = [];
 
-    const bytesToRead = chapterCount * ChapterTable.CHAPTER_HEADER_BYTE_SIZE;
+    // already read a uint32
+    const bytesToRead = byteLength - Uint32Array.BYTES_PER_ELEMENT;
     const buffer = await fileReader.readBytes(bytesToRead);
     const bufferReader = new BufferReader(buffer.buffer);
+    const chapterCount = bufferReader.readUint16();
 
     for (let i = 0; i < chapterCount; i++) {
-      const name = parseFloat(bufferReader.readString(8));
+      const nameLength = bufferReader.readUint8();
+      const name = bufferReader.readString(nameLength);
       const byteOffset = bufferReader.readUint64();
       const byteLength = bufferReader.readUint64();
       const pageCount = bufferReader.readUint16();
-      const chapter = {
+      const chapter: ChapterHeader = {
         name,
         byteOffset,
         byteLength,
@@ -84,12 +81,11 @@ class ChapterTable {
     return new ChapterTable(chapters);
   }
 
-  public static fromChapterNamesArray(chapterNames: number[]): ChapterTable {
+  public static fromChapterNamesArray(chapterNames: string[]): ChapterTable {
     const table = new ChapterTable(
       chapterNames.map((name) => {
         return {
           name,
-          encodedName: fromString(name.toString().padStart(8, "0")),
           byteLength: 0,
           byteOffset: 0,
           pageCount: 0,
@@ -101,9 +97,18 @@ class ChapterTable {
   }
 
   public get byteLength(): number {
+    const chapterNamesSize = this.chapters.reduce(
+      (total, current) => total + current.name.length,
+      0
+    );
+
     return (
+      // Chapter table byte length
+      Uint32Array.BYTES_PER_ELEMENT +
+      // Chapter count
+      Uint16Array.BYTES_PER_ELEMENT +
       this.chapters.length * ChapterTable.CHAPTER_HEADER_BYTE_SIZE +
-      Uint16Array.BYTES_PER_ELEMENT
+      chapterNamesSize
     );
   }
 }

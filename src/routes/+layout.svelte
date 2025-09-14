@@ -4,11 +4,7 @@
   import NavigationLink from "$lib/components/navigation/NavigationLink.svelte";
   import { Manga } from "$lib/Manga";
   import NavigationSection from "$lib/components/navigation/NavigationSection.svelte";
-  import {
-    BaseDirectory,
-    watchImmediate,
-    type UnwatchFn,
-  } from "@tauri-apps/plugin-fs";
+  import { BaseDirectory, watch, type UnwatchFn } from "@tauri-apps/plugin-fs";
   import { appDataDir } from "@tauri-apps/api/path";
   import { onDestroy, onMount } from "svelte";
   import { checkAndMkdir } from "$lib/fsUtils";
@@ -21,15 +17,16 @@
     await checkAndMkdir(await appDataDir());
     await checkAndMkdir("manga", BaseDirectory.AppData);
 
-    unwatch = await watchImmediate(
+    unwatch = await watch(
       "manga",
       (event) => {
+        console.log(event);
         if (!event.paths.some((path) => path.endsWith(".mga"))) {
           return;
         }
         manga = Manga.getAllInDirectory();
       },
-      { baseDir: BaseDirectory.AppData }
+      { baseDir: BaseDirectory.AppData, delayMs: 500 }
     );
   });
 

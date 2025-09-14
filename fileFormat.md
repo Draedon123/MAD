@@ -17,13 +17,15 @@ uint16 - file format version
 
 ## Chapter Table
 
+uint32 - chapter table byte length
 uint16 - number of chapters
 
 array of:
 
 {
 
-- chapter name, utf-8 encoded, left-padded with "0" until 8 characters in length
+- uint8 - chapter name length
+- chapter name, utf-8 encoded
 - uint64 - chapter byte offset
 - uint64 - chapter byte length
 - uint16 - chapter page count

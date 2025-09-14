@@ -10,7 +10,7 @@ import { Manga } from "./Manga";
 
 type Page = {
   image: ArrayBuffer;
-  chapter: number;
+  chapter: string;
 };
 
 class MangaFactory {
@@ -22,7 +22,7 @@ class MangaFactory {
   private chapterByteOffset: number;
   constructor(
     private readonly name: string,
-    private readonly chapters: number[],
+    private readonly chapters: string[],
     private readonly coverImage: ArrayBuffer,
     private readonly path: string
   ) {

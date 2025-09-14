@@ -168,7 +168,7 @@ class Manga {
         this.cleanCache(chapter);
       }
 
-      this.cachedChapterOrder.push(chapterHeader.name);
+      this.cachedChapterOrder.push(chapterIndex);
     }
 
     const chapter = this.cache.get(chapterIndex) as Chapter;

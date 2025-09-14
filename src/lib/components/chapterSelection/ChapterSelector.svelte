@@ -1,7 +1,7 @@
 <script lang="ts">
   type Props = {
     chapterOnClick: (chapterIndex: number) => unknown;
-    chapterNames: number[];
+    chapterNames: string[];
     highlightedRange?: number[];
   };
 
@@ -44,7 +44,7 @@
     cursor: pointer;
 
     height: 2em;
-    width: 10ch;
+    width: 20ch;
 
     &.highlighted {
       background-color: colours.$tertiary;
