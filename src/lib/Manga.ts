@@ -1,5 +1,6 @@
 import {
   BaseDirectory,
+  exists,
   FileHandle,
   open,
   readDir,
@@ -9,6 +10,7 @@ import { ChapterTable, type ChapterHeader } from "./ChapterTable";
 import { BufferReader } from "./BufferReader";
 import * as path from "@tauri-apps/api/path";
 import { browser } from "$app/environment";
+import { checkAndReadDir } from "./fsUtils";
 
 type Chapter = {
   header: ChapterHeader;
@@ -86,9 +88,9 @@ class Manga {
     console.log({ version, chapterTable: this.chapterTable });
   }
 
-  public async getAllPages(chapterName: number): Promise<string[]> {
+  public async getAllPages(chapterIndex: number): Promise<string[]> {
     if (this.pagesRequest === null) {
-      const promise = this._getAllPages(chapterName);
+      const promise = this._getAllPages(chapterIndex);
       this.pagesRequest = promise;
 
       const pages = await promise;
@@ -98,30 +100,30 @@ class Manga {
     } else {
       await this.pagesRequest;
 
-      return this.getAllPages(chapterName);
+      return this.getAllPages(chapterIndex);
     }
   }
 
-  private async _getAllPages(chapterName: number): Promise<string[]> {
-    const chapter = this.chapterTable.getChapterByName(chapterName);
+  private async _getAllPages(chapterIndex: number): Promise<string[]> {
+    const chapter = this.chapterTable.getChapterByIndex(chapterIndex);
     if (chapter === null) {
-      throw new Error(`Could not find chapter ${chapterName}`);
+      throw new Error(`Could not find chapter with index ${chapterIndex}`);
     }
 
     const pages: string[] = [];
 
     for (let i = 1; i <= chapter.pageCount; i++) {
-      pages.push(await this.getPage(chapterName, i));
+      pages.push(await this.getPage(chapterIndex, i));
     }
 
     return pages;
   }
 
   private async getPage(
-    chapterName: number,
+    chapterIndex: number,
     pageNumber: number
   ): Promise<string> {
-    const cachedChapter = this.cache.get(chapterName);
+    const cachedChapter = this.cache.get(chapterIndex);
     const pageInCache =
       (cachedChapter?.pages?.[pageNumber]?.src ?? "").length > 0;
     if (pageInCache) {
@@ -129,9 +131,10 @@ class Manga {
     }
 
     const chapterHeader =
-      cachedChapter?.header ?? this.chapterTable.getChapterByName(chapterName);
+      cachedChapter?.header ??
+      this.chapterTable.getChapterByIndex(chapterIndex);
     if (chapterHeader === null) {
-      throw new Error(`Could not find chapter ${chapterName}`);
+      throw new Error(`Could not find chapter with index ${chapterIndex}`);
     }
 
     if (cachedChapter === undefined) {
@@ -139,7 +142,7 @@ class Manga {
         header: chapterHeader,
         pages: {},
       };
-      this.cache.set(chapterName, chapter);
+      this.cache.set(chapterIndex, chapter);
 
       let offset = 0;
       await this.fileReader.setOffset(chapterHeader.byteOffset);
@@ -168,7 +171,7 @@ class Manga {
       this.cachedChapterOrder.push(chapterHeader.name);
     }
 
-    const chapter = this.cache.get(chapterName) as Chapter;
+    const chapter = this.cache.get(chapterIndex) as Chapter;
     await this.fileReader.setOffset(
       chapterHeader.byteOffset + chapter.pages[pageNumber].offset
     );
@@ -218,27 +221,33 @@ class Manga {
     }
 
     const mangaList: Manga[] = [];
-    const directory = await readDir("manga", {
-      baseDir: BaseDirectory.AppData,
-    });
+    const directoryPath = await path.resolve(await path.appDataDir(), "manga");
+    const directory = await checkAndReadDir(directoryPath);
 
     for (const entry of directory) {
       if (entry.isDirectory || !entry.name.endsWith(".mga")) {
         continue;
       }
 
-      const mangaName = entry.name.slice(0, -".mga".length);
-      const file = await open(await path.join("manga", entry.name), {
-        baseDir: BaseDirectory.AppData,
-      });
-
-      const manga = new Manga(mangaName, file);
-      await manga.initialise();
+      const mangaPath = await path.join(directoryPath, entry.name);
+      const manga = await Manga.fromFilePath(mangaPath);
 
       mangaList.push(manga);
     }
 
     return mangaList;
+  }
+
+  public static async fromFilePath(mangaPath: string): Promise<Manga> {
+    const relativePath = mangaPath.split(path.sep()).at(-1) as string;
+    const name = relativePath.slice(0, -".mga".length);
+
+    const file = await open(mangaPath);
+
+    const manga = new Manga(name, file);
+    await manga.initialise();
+
+    return manga;
   }
 }
 

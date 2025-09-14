@@ -11,7 +11,12 @@
     "fs:allow-watch",
     {
       "identifier": "fs:scope",
-      "allow": [{ "path": "$APPCONFIG/**/*" }, { "path": "$APPDATA/**/*" }]
+      "allow": [
+        { "path": "$APPCONFIG/**/*" },
+        { "path": "$APPDATA/**/*" },
+        { "path": "$APPCONFIG" },
+        { "path": "$APPDATA" }
+      ]
     },
     {
       "identifier": "http:default",

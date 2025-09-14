@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Manga Viewer",
+  "productName": "MAD",
   "version": "0.1.0",
-  "identifier": "manga-viewer",
+  "identifier": "mad",
   "build": {
     "frontendDist": "../build",
     "devUrl": "http://localhost:5173",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Manga Viewer",
+        "title": "MAD",
         "width": 800,
         "height": 600,
         "resizable": true,

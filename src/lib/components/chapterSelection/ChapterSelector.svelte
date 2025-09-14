@@ -1,6 +1,6 @@
 <script lang="ts">
   type Props = {
-    chapterOnClick: (chapter: number) => unknown;
+    chapterOnClick: (chapterIndex: number) => unknown;
     chapterNames: number[];
     highlightedRange?: number[];
   };
@@ -16,14 +16,14 @@
 
 <div class="container">
   <!-- eslint-disable-next-line svelte/require-each-key -->
-  {#each chapterNames as chapter}
+  {#each chapterNames as chapter, chapterIndex}
     <button
       onclick={() => {
-        chapterOnClick(chapter);
+        chapterOnClick(chapterIndex);
       }}
       class="chapter-select"
-      class:highlighted={chapter >= highlightedRange[0] &&
-        chapter <= highlightedRange[1]}>{chapter}</button>
+      class:highlighted={chapterIndex >= highlightedRange[0] &&
+        chapterIndex <= highlightedRange[1]}>{chapter}</button>
   {/each}
 </div>
 

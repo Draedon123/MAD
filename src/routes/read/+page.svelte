@@ -34,7 +34,7 @@
 </script>
 
 <svelte:head>
-  <title>Manga Viewer | Browse</title>
+  <title>MAD | Browse</title>
 </svelte:head>
 
 <main>
@@ -48,7 +48,7 @@
         {@render MangaComponent(manga)}
       {:else}
         No manga downloaded. Download manga from the
-        <a href="/download">Download Page</a>
+        <a href="/download" style="margin-left: 0.3ch">Download Page</a>
       {/each}
     </div>
   {:catch error}
@@ -74,6 +74,7 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
   }
 
   a {

@@ -7,14 +7,21 @@
   import { browser } from "$app/environment";
   import type { MouseEventHandler } from "svelte/elements";
   import ChapterSelector from "$lib/components/chapterSelection/ChapterSelector.svelte";
+  import { writable } from "svelte/store";
 
   let { data }: PageProps = $props();
 
   let manga = $derived(getManga(data.mangaName));
   const mangaToDestroy: Manga[] = $state([]);
-  let chapter: number = $state(1);
+  let chapterIndex = writable(0);
   let showChapters: boolean = $state(false);
   const eventListenerAbortController = new AbortController();
+
+  chapterIndex.subscribe(() => {
+    if (browser) {
+      document.querySelector("main")?.scrollTo(0, 0);
+    }
+  });
 
   $effect(() => {
     if (mangaToDestroy.length > 1) {
@@ -39,7 +46,7 @@
 
     await manga.initialise();
 
-    chapter = manga.chapterTable.getChapterByIndex(0).name;
+    $chapterIndex = 0;
 
     mangaToDestroy.push(manga);
 
@@ -52,17 +59,23 @@
       return;
     }
 
-    if (chapter > 1 && event.key === "ArrowLeft") {
-      chapter--;
-      return;
-    }
+    switch (event.code) {
+      case "ArrowLeft": {
+        if ($chapterIndex <= 0) {
+          break;
+        }
 
-    if (
-      chapter < resolvedManga.chapterTable.chapters.length &&
-      event.key === "ArrowRight"
-    ) {
-      chapter++;
-      return;
+        $chapterIndex--;
+        break;
+      }
+      case "ArrowRight": {
+        if ($chapterIndex >= resolvedManga.chapterTable.chapters.length) {
+          break;
+        }
+
+        $chapterIndex++;
+        break;
+      }
     }
   }
 
@@ -128,18 +141,21 @@
 </script>
 
 <svelte:head>
-  <title>Manga Viewer | Reading {data.mangaName}</title>
+  <title>MAD | Reading {data.mangaName}</title>
 </svelte:head>
 
 <main>
-  <h1>Reading {data.mangaName} Chapter {chapter}</h1>
-
   {#await manga}
     Loading manga...
   {:then manga}
     {#if manga === null}
       <span class="error">Manga not found</span>
     {:else}
+      <h1>
+        Reading {data.mangaName} Chapter {manga.chapterTable.getChapterByIndex(
+          $chapterIndex
+        ).name}
+      </h1>
       <button
         class="chapter-select-toggle"
         onclick={() => {
@@ -148,8 +164,8 @@
       <div class="chapter-select-container" class:hidden={!showChapters}>
         <ChapterSelector
           chapterNames={manga.chapterTable.getChapterNames()}
-          chapterOnClick={(chapterName) => {
-            chapter = chapterName;
+          chapterOnClick={(index) => {
+            $chapterIndex = index;
           }} />
       </div>
 
@@ -167,7 +183,7 @@
             data-direction="right"
             onmousedown={resizersOnMouseDown}>
           </div>
-          {#await manga.getAllPages(chapter)}
+          {#await manga.getAllPages($chapterIndex)}
             <span class="centre-text">Loading pages...</span>
           {:then pages}
             <!-- eslint-disable-next-line svelte/require-each-key -->

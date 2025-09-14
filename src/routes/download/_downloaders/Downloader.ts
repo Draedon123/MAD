@@ -7,6 +7,11 @@ abstract class Downloader {
   }
   public abstract getMangaName(): Promise<string> | string;
   public abstract getChapterNames(): Promise<number[]>;
+  /**
+   * @param { number } from chapter index
+   * @param { number } to chapter index
+   * @param handleError
+   */
   public abstract download(
     from: number,
     to: number,

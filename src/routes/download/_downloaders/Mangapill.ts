@@ -91,10 +91,7 @@ class Mangapill extends Downloader {
   ): Promise<void> {
     console.log("Fetching chapter names");
     const chapterNames = await this.getChapterNames();
-    const chaptersToDownload = chapterNames.slice(
-      chapterNames.indexOf(from),
-      chapterNames.indexOf(to) + 1
-    );
+    const chaptersToDownload = chapterNames.slice(from, to + 1);
 
     const splitURL = this.url.split("/");
     const mangaNumericID = parseInt(splitURL.at(-2) as string);

@@ -9,13 +9,18 @@
     watchImmediate,
     type UnwatchFn,
   } from "@tauri-apps/plugin-fs";
+  import { appDataDir } from "@tauri-apps/api/path";
   import { onDestroy, onMount } from "svelte";
+  import { checkAndMkdir } from "$lib/fsUtils";
 
   let { children }: WithChildren = $props();
   let manga: Promise<Manga[]> = $state(Manga.getAllInDirectory());
   let unwatch: UnwatchFn | null = null;
 
   onMount(async () => {
+    await checkAndMkdir(await appDataDir());
+    await checkAndMkdir("manga", BaseDirectory.AppData);
+
     unwatch = await watchImmediate(
       "manga",
       (event) => {

@@ -7,7 +7,7 @@
   let statusMessage: string = $state("");
   let errors: string[] = $state([]);
   let chapterNames: number[] = $state([]);
-  let chapterDownloadRange: [number, number] = $state([1, 1]);
+  let chapterDownloadRange: [number, number] = $state([0, 0]);
   let disableInputs: boolean = $state(false);
   let readyToDownload: boolean = false;
   let lastURL: string = "";
@@ -47,7 +47,7 @@
 
       await download(chapterDownloadRange, downloader);
 
-      chapterDownloadRange = [1, 1];
+      chapterDownloadRange = [0, 0];
       statusMessage = "Manga finished downloading";
       disableInputs = false;
       readyToDownload = false;
@@ -78,9 +78,9 @@
     return downloader;
   }
 
-  function chapterSelectorOnClick(chapterName: number): void {
+  function chapterSelectorOnClick(chapterIndex: number): void {
     chapterDownloadRange.shift();
-    chapterDownloadRange.push(chapterName);
+    chapterDownloadRange.push(chapterIndex);
   }
 
   async function download(
@@ -94,7 +94,7 @@
 </script>
 
 <svelte:head>
-  <title>Manga Viewer | Download</title>
+  <title>MAD | Download</title>
 </svelte:head>
 <main>
   <h1>Download</h1>

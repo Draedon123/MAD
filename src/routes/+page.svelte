@@ -1,7 +1,7 @@
 <script lang="ts"></script>
 
 <svelte:head>
-  <title>Manga Viewer</title>
+  <title>MAD</title>
 </svelte:head>
 
 <main>

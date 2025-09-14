@@ -34,7 +34,7 @@ class ChapterTable {
   }
 
   public getChapterByIndex(index: number): ChapterHeader {
-    return this.chapters.at(index) as ChapterHeader;
+    return this.chapters[index] as ChapterHeader;
   }
 
   public getChapterByName(name: number): ChapterHeader | null {
