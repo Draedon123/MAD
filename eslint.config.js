@@ -8,14 +8,15 @@ import svelteConfig from "./svelte.config.js";
 
 const gitignorePath = fileURLToPath(new URL("./.gitignore", import.meta.url));
 
-export default ts.config(
+/** @type {import("eslint").Linter.Config[]} */
+export default [
   includeIgnoreFile(gitignorePath),
   js.configs.recommended,
   ...ts.configs.strict,
   ...svelte.configs.recommended,
   {
     languageOptions: {
-      globals: { ...globals.browser, ...globals.node },
+      globals: { ...globals.browser },
     },
     rules: { "no-undef": "off" },
   },
@@ -35,8 +36,13 @@ export default ts.config(
     rules: {
       "@typescript-eslint/no-require-imports": "off",
     },
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
   },
   {
     ignores: ["./src-tauri/**/*"],
-  }
-);
+  },
+];

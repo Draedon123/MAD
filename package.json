@@ -5,14 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "prebuild": "npm run prepare && npm run lint && npm run format",
+    "prebuild": "pnpm run prepare && prettier -w .",
     "build": "vite build",
-    "postbuild": "npm run minify",
+    "postbuild": "pnpm run minify",
     "preview": "vite preview",
     "prepare": "svelte-kit sync || echo ''",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "format": "prettier --write .",
+    "format": "prettier -w .",
     "lint": "eslint .",
     "minify": "node scripts/minify.cjs"
   },
@@ -39,8 +39,9 @@
     "vite": "^6.2.6"
   },
   "dependencies": {
-    "@tauri-apps/plugin-dialog": "^2.2.2",
-    "@tauri-apps/plugin-fs": "^2.3.0",
-    "@tauri-apps/plugin-http": "^2.4.4"
+    "@tauri-apps/api": "^2.9.1",
+    "@tauri-apps/plugin-dialog": "~2",
+    "@tauri-apps/plugin-fs": "~2",
+    "@tauri-apps/plugin-http": "2.5.5"
   }
 }

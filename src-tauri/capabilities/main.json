@@ -12,15 +12,31 @@
     {
       "identifier": "fs:scope",
       "allow": [
-        { "path": "$APPCONFIG/**/*" },
-        { "path": "$APPDATA/**/*" },
-        { "path": "$APPCONFIG" },
-        { "path": "$APPDATA" }
+        {
+          "path": "$APPCONFIG/**/*"
+        },
+        {
+          "path": "$APPDATA/**/*"
+        },
+        {
+          "path": "$APPCONFIG"
+        },
+        {
+          "path": "$APPDATA"
+        }
       ]
     },
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://**" }, { "url": "http://**" }]
-    }
+      "allow": [
+        {
+          "url": "https://**"
+        },
+        {
+          "url": "http://**"
+        }
+      ]
+    },
+    "fs:default"
   ]
 }

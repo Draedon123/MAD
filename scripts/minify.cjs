@@ -5,7 +5,6 @@
  * @property { RegExp } pattern
  * @property { (fileContents: string) => Promise<string | null> } minify
  */
-
 const crawl = require("./crawl.cjs");
 const { resolve } = require("path");
 const { readFileSync, writeFileSync } = require("fs");
