@@ -2,13 +2,11 @@
   import * as path from "@tauri-apps/api/path";
   import Setting, { type Setting as SettingsType } from "./Setting.svelte";
   import { exists, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-  import { settings as defaultSettings } from "./settings";
-  import { onMount } from "svelte";
+  import { settings, defaultSettings } from "./settings";
 
   const settingsPath = "settings.json";
-  let settings: Record<string, SettingsType> | null = $state(null);
 
-  async function getSettings(): Promise<Record<string, SettingsType>> {
+  async function getSettings(): Promise<void> {
     if (
       !(await exists(settingsPath, { baseDir: path.BaseDirectory.AppConfig }))
     ) {
@@ -28,18 +26,13 @@
       savedSettings = {};
     }
 
-    const parsedSettings: Record<string, SettingsType> =
-      structuredClone(defaultSettings);
-
     for (const [key, setting] of Object.entries(savedSettings)) {
       if (!(key in defaultSettings)) {
         continue;
       }
 
-      parsedSettings[key].value = setting.value;
+      $settings[key].value = setting.value;
     }
-
-    return parsedSettings;
   }
 
   async function saveSettings(
@@ -50,28 +43,24 @@
       baseDir: path.BaseDirectory.AppConfig,
     });
   }
-
-  onMount(async () => {
-    settings = await getSettings();
-  });
 </script>
 
 <main>
   <h1>Settings</h1>
-  {#if settings === null}
+  {#await getSettings()}
     Loading settings...
-  {:else}
-    {#each Object.entries(settings) as [key, setting] (setting)}
-      <Setting bind:setting={settings[key]} />
+  {:then}
+    {#each Object.entries($settings) as [key, setting] (setting)}
+      <Setting bind:setting={$settings[key]} />
     {/each}
 
     <br />
 
     <button
       onclick={() => {
-        saveSettings(settings as Record<string, SettingsType>);
+        saveSettings($settings);
       }}>Save</button>
-  {/if}
+  {/await}
 </main>
 
 <style lang="scss">

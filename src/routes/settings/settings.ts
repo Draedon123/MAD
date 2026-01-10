@@ -1,6 +1,7 @@
+import { writable, type Writable } from "svelte/store";
 import type { Setting } from "./Setting.svelte";
 
-const settings: Record<string, Setting> = {
+const defaultSettings: Record<string, Setting> = {
   "manga-layout": {
     name: "Manga Layout",
     type: "string",
@@ -10,4 +11,7 @@ const settings: Record<string, Setting> = {
     possibleValues: new Set(["flip", "scroll"]),
   },
 };
-export { settings };
+
+const settings: Writable<Record<string, Setting>> = writable(defaultSettings);
+
+export { defaultSettings, settings };

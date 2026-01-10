@@ -3,11 +3,12 @@
   import { exists, open } from "@tauri-apps/plugin-fs";
   import type { PageProps } from "./$types";
   import * as paths from "@tauri-apps/api/path";
-  import { onMount } from "svelte";
   import { browser } from "$app/environment";
-  import type { MouseEventHandler } from "svelte/elements";
-  import ChapterSelector from "$lib/components/chapterSelection/ChapterSelector.svelte";
   import { writable } from "svelte/store";
+  import ScrollManga from "./layouts/ScrollManga.svelte";
+  import { settings } from "../../settings/settings";
+  import FlipManga from "./layouts/FlipManga.svelte";
+  import ChapterSelector from "$lib/components/chapterSelection/ChapterSelector.svelte";
 
   let { data }: PageProps = $props();
 
@@ -15,7 +16,7 @@
   const mangaToDestroy: Manga[] = $state([]);
   let chapterIndex = writable(0);
   let showChapters: boolean = $state(false);
-  const eventListenerAbortController = new AbortController();
+  let mangaLayout = $settings["manga-layout"].value;
 
   chapterIndex.subscribe(() => {
     if (browser) {
@@ -52,92 +53,6 @@
 
     return manga;
   }
-
-  async function navigateChapters(event: KeyboardEvent): Promise<void> {
-    const resolvedManga = await manga;
-    if (resolvedManga === null) {
-      return;
-    }
-
-    switch (event.code) {
-      case "ArrowLeft": {
-        if ($chapterIndex <= 0) {
-          break;
-        }
-
-        $chapterIndex--;
-        break;
-      }
-      case "ArrowRight": {
-        if ($chapterIndex >= resolvedManga.chapterTable.chapters.length - 1) {
-          break;
-        }
-
-        $chapterIndex++;
-        break;
-      }
-    }
-  }
-
-  const resizersOnMouseDown: MouseEventHandler<HTMLDivElement> = (
-    event
-  ): void => {
-    event.preventDefault();
-    const element = event.currentTarget.parentElement as HTMLElement;
-    const direction = event.currentTarget.getAttribute("data-direction");
-    const minimumWidth = 100;
-
-    if (direction !== "left" && direction !== "right") {
-      console.warn(`Unspecified resize direction "${direction}"`);
-      return;
-    }
-
-    window.addEventListener("mousemove", resize, {
-      signal: eventListenerAbortController.signal,
-    });
-    window.addEventListener("mouseup", stopResize, {
-      signal: eventListenerAbortController.signal,
-    });
-
-    function resize(event: MouseEvent): void {
-      switch (direction) {
-        case "left": {
-          const width = Math.max(
-            minimumWidth,
-            element.clientWidth -
-              (event.pageX - element.getBoundingClientRect().left) * 2
-          );
-          element.style.width = `${width}px`;
-
-          break;
-        }
-        case "right": {
-          const width = Math.max(
-            minimumWidth,
-            element.clientWidth -
-              (element.getBoundingClientRect().right - event.pageX) * 2
-          );
-          element.style.width = `${width}px`;
-
-          break;
-        }
-      }
-    }
-
-    function stopResize(): void {
-      window.removeEventListener("mousemove", resize);
-    }
-  };
-
-  onMount(() => {
-    document.addEventListener("keydown", navigateChapters);
-
-    return async () => {
-      await (await manga)?.destroy();
-      eventListenerAbortController.abort();
-      document.removeEventListener("keydown", navigateChapters);
-    };
-  });
 </script>
 
 <svelte:head>
@@ -167,33 +82,11 @@
             $chapterIndex = index;
           }} />
       </div>
-
-      <div class="centre-contents">
-        <div class="pages">
-          <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <div
-            class="resizer"
-            data-direction="left"
-            onmousedown={resizersOnMouseDown}>
-          </div>
-          <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <div
-            class="resizer"
-            data-direction="right"
-            onmousedown={resizersOnMouseDown}>
-          </div>
-          {#await manga.getAllPages($chapterIndex)}
-            <span class="centre-text">Loading pages...</span>
-          {:then pages}
-            <!-- eslint-disable-next-line svelte/require-each-key -->
-            {#each pages as pageSrc, i}
-              <img class="page" src={pageSrc} alt="Page {i + 1}" />
-            {/each}
-          {:catch error}
-            {error}
-          {/await}
-        </div>
-      </div>
+      {#if mangaLayout === "scroll"}
+        <ScrollManga {manga} bind:chapterIndex={$chapterIndex} />
+      {:else}
+        <FlipManga {manga} bind:chapterIndex={$chapterIndex} />
+      {/if}
     {/if}
   {:catch error}
     <span class="error">Error loading manga: {error}</span>
@@ -214,49 +107,6 @@
     & {
       height: 1.5em;
       margin-bottom: 0.5em;
-    }
-  }
-
-  .centre-contents {
-    // - 1ch for left margin of page
-    width: calc(100% - 1ch);
-
-    display: flex;
-    justify-content: center;
-  }
-
-  .centre-text {
-    text-align: center;
-  }
-
-  .pages {
-    width: 95%;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-
-    img.page {
-      width: 100%;
-      margin: 1% 0;
-      pointer-events: none;
-    }
-  }
-
-  .resizer {
-    $width: 2ch;
-    // account for page margins
-    height: calc(100% - 2em);
-    top: 1em;
-    width: $width;
-    cursor: ew-resize;
-    position: absolute;
-
-    &[data-direction="left"] {
-      left: calc(-0.5 * $width);
-    }
-
-    &[data-direction="right"] {
-      right: calc(-0.5 * $width);
     }
   }
 </style>

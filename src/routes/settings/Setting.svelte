@@ -20,7 +20,7 @@
 
   let { setting = $bindable() }: Props = $props();
 
-  let inputName = `Setting ${setting.name}`;
+  const inputName = `Setting ${setting.name}`;
 </script>
 
 {#if setting.type === "string"}
