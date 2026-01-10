@@ -20,7 +20,6 @@
     unwatch = await watch(
       "manga",
       (event) => {
-        console.log(event);
         if (!event.paths.some((path) => path.endsWith(".mga"))) {
           return;
         }

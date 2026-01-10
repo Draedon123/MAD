@@ -1,6 +1,5 @@
 <script lang="ts" module>
   type Setting = {
-    key: string;
     name: string;
     description: string;
   } & StringSetting;
@@ -8,6 +7,7 @@
   type StringSetting = {
     type: "string";
     value: string;
+    possibleValues?: Set<string>;
   };
 
   export type { Setting };
@@ -19,15 +19,23 @@
   };
 
   let { setting = $bindable() }: Props = $props();
+
+  let inputName = `Setting ${setting.name}`;
 </script>
 
 {#if setting.type === "string"}
   <label>
     {setting.name}:
-    <input
-      name="setting-{setting.key}"
-      type="text"
-      bind:value={setting.value} />
+
+    {#if setting.possibleValues}
+      <select name={inputName} bind:value={setting.value}>
+        {#each setting.possibleValues as value}
+          <option {value}>{value}</option>
+        {/each}
+      </select>
+    {:else}
+      <input name={inputName} type="text" bind:value={setting.value} />
+    {/if}
   </label>
 {/if}
 

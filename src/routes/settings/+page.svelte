@@ -2,57 +2,50 @@
   import * as path from "@tauri-apps/api/path";
   import Setting, { type Setting as SettingsType } from "./Setting.svelte";
   import { exists, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
-  import { settingsSchema } from "./settings";
+  import { settings as defaultSettings } from "./settings";
   import { onMount } from "svelte";
 
   const settingsPath = "settings.json";
-  let settings: SettingsType[] | null = $state(null);
+  let settings: Record<string, SettingsType> | null = $state(null);
 
-  async function getSettings(): Promise<SettingsType[]> {
+  async function getSettings(): Promise<Record<string, SettingsType>> {
     if (
       !(await exists(settingsPath, { baseDir: path.BaseDirectory.AppConfig }))
     ) {
-      await saveSettings(settingsSchema);
+      await saveSettings(defaultSettings);
     }
 
     const fileContents = await readTextFile(settingsPath, {
       baseDir: path.BaseDirectory.AppConfig,
     });
 
-    let savedSettings: [string, string][];
+    let savedSettings: Record<string, SettingsType>;
     try {
-      savedSettings = JSON.parse(fileContents) as [string, string][];
+      savedSettings = JSON.parse(fileContents) as Record<string, SettingsType>;
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // settings corrupted
-      savedSettings = settingsSchema.map(({ key, value }) => [key, value]);
+      savedSettings = {};
     }
 
-    const parsedSettings: SettingsType[] = [];
+    const parsedSettings: Record<string, SettingsType> =
+      structuredClone(defaultSettings);
 
-    for (const [key, value] of savedSettings) {
-      const _setting = settingsSchema.find((setting) => setting.key === key);
-
-      if (_setting === undefined) {
+    for (const [key, setting] of Object.entries(savedSettings)) {
+      if (!(key in defaultSettings)) {
         continue;
       }
 
-      const setting = structuredClone(_setting);
-
-      setting.value = value;
-
-      parsedSettings.push(setting);
+      parsedSettings[key].value = setting.value;
     }
 
     return parsedSettings;
   }
 
-  async function saveSettings(settings: SettingsType[]): Promise<void> {
-    const minimalSettingsObject: [string, string][] = settings.map(
-      ({ key, value }) => [key, value]
-    );
-
-    const stringified = JSON.stringify(minimalSettingsObject);
+  async function saveSettings(
+    settings: Record<string, SettingsType>
+  ): Promise<void> {
+    const stringified = JSON.stringify(settings);
     await writeTextFile(settingsPath, stringified, {
       baseDir: path.BaseDirectory.AppConfig,
     });
@@ -68,17 +61,15 @@
   {#if settings === null}
     Loading settings...
   {:else}
-    {#each settings as setting, i (setting)}
-      <Setting bind:setting={settings[i]} />
+    {#each Object.entries(settings) as [key, setting] (setting)}
+      <Setting bind:setting={settings[key]} />
     {/each}
 
     <br />
 
     <button
       onclick={() => {
-        // @ts-expect-error in this branch of the if statement,
-        // settings cannot be null
-        saveSettings(settings);
+        saveSettings(settings as Record<string, SettingsType>);
       }}>Save</button>
   {/if}
 </main>
