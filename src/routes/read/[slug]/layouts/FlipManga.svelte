@@ -81,7 +81,9 @@
 
 <div class="centre-contents">
   <div class="page-container">
-    {#await pages then pages}
+    {#await pages}
+      <span class="centre-text">Loading pages...</span>
+    {:then pages}
       <img
         src={pages[pageNumber]}
         alt="Page {pageNumber + 1}"
@@ -104,6 +106,10 @@
     justify-content: center;
 
     position: absolute;
+  }
+
+  .centre-text {
+    text-align: center;
   }
 
   .page {
