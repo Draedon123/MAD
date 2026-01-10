@@ -24,6 +24,7 @@
         if (!event.paths.some((path) => path.endsWith(".mga"))) {
           return;
         }
+
         manga = Manga.getAllInDirectory();
       },
       { baseDir: BaseDirectory.AppData, delayMs: 500 }
@@ -45,9 +46,7 @@
       {#snippet header()}
         <NavigationLink href="/read">Read</NavigationLink>
       {/snippet}
-      {#await manga}
-        <span class="loading-text">Loading manga...</span>
-      {:then mangaList}
+      {#await manga then mangaList}
         {#each mangaList as manga (manga.name)}
           <NavigationLink href="/read/{encodeURIComponent(manga.name)}"
             >{manga.name}</NavigationLink>
@@ -61,18 +60,10 @@
 </div>
 
 <style lang="scss">
-  @use "/src/styles/colours.scss";
-
   .container {
     display: grid;
     grid-template-columns: max-content 1fr;
     column-gap: 1ch;
     width: 100vw;
-  }
-
-  .loading-text {
-    color: colours.$text-tertiary;
-    font-size: 1.3rem;
-    padding: 0.2rem 0;
   }
 </style>

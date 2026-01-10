@@ -25,6 +25,7 @@
   @use "sass:color" as colour;
   @use "/src/styles/scrollbar.scss";
 
+  $transition-time: 0.5s;
   .sidebar {
     $background-colour: #272727;
     $scrollbar-track-colour: colour.mix($background-colour, #fff, 90%);
@@ -41,7 +42,7 @@
 
     overflow: hidden scroll;
     // https://easings.net/#easeOutQuart
-    transition: width 1s cubic-bezier(0.25, 1, 0.5, 1);
+    transition: width $transition-time cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   .sidebar.closed {
@@ -61,7 +62,7 @@
     float: right;
     background: none;
     border: none;
-    transition: transform 1s ease-out;
+    transition: transform $transition-time ease-out;
 
     &:before,
     &:after {

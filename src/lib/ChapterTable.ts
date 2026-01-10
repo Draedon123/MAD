@@ -54,6 +54,10 @@ class ChapterTable {
     await fileReader.setOffset(Manga.HEADER_BYTE_SIZE);
     const byteLength = await fileReader.readUint32();
 
+    if (byteLength === 0) {
+      return new ChapterTable();
+    }
+
     const chapters: ChapterHeader[] = [];
 
     // already read a uint32

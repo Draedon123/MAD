@@ -53,6 +53,11 @@ class Manga {
     }
 
     this.chapterTable = await ChapterTable.fromFile(this.fileReader);
+
+    if (this.chapterTable.chapters.length === 0) {
+      return;
+    }
+
     this.coverImageSrc = await this.fetchCoverImageSrc();
     this.initialised = true;
   }
@@ -226,7 +231,9 @@ class Manga {
       const mangaPath = await path.join(directoryPath, entry.name);
       const manga = await Manga.fromFilePath(mangaPath);
 
-      mangaList.push(manga);
+      if (manga.chapterTable.chapters.length > 0) {
+        mangaList.push(manga);
+      }
     }
 
     return mangaList;
