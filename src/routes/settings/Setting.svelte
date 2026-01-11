@@ -24,12 +24,13 @@
 </script>
 
 {#if setting.type === "string"}
-  <label>
+  <label title={setting.description}>
     {setting.name}:
 
     {#if setting.possibleValues}
+      <!-- seems like the binding is reactive for some reason... -->
       <select name={inputName} bind:value={setting.value}>
-        {#each setting.possibleValues as value}
+        {#each setting.possibleValues as value (value)}
           <option {value}>{value}</option>
         {/each}
       </select>

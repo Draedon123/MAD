@@ -1,5 +1,4 @@
 <script lang="ts">
-  import ChapterSelector from "$lib/components/chapterSelection/ChapterSelector.svelte";
   import type { Manga } from "$lib/Manga";
   import { onMount } from "svelte";
   import type { MouseEventHandler } from "svelte/elements";
