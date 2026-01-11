@@ -12,11 +12,6 @@
   let readyToDownload: boolean = false;
   let lastURL: string = "";
 
-  function handleErrors(error: string): void {
-    console.error(error);
-    errors.push(error);
-  }
-
   async function downloadButtonOnClick(): Promise<void> {
     if (url === "") {
       return;
@@ -26,7 +21,10 @@
 
     if (downloader === null) {
       const errorMessage = "Link not supported";
-      handleErrors(errorMessage);
+
+      console.error(errorMessage);
+      errors.push(errorMessage);
+
       return;
     }
 
@@ -45,7 +43,12 @@
       chapterNames = [];
       statusMessage = "Downloading manga. Do not leave this page";
 
-      await download(chapterDownloadRange, downloader);
+      await download(chapterDownloadRange, downloader).catch((error) => {
+        console.error(error);
+        errors.push(
+          error instanceof Error ? error.message : JSON.stringify(error)
+        );
+      });
 
       chapterDownloadRange = [0, 0];
       statusMessage = "Manga finished downloading";
@@ -66,12 +69,14 @@
   }
 
   function getDownloader(url: string) {
-    const DOWNLOADERS = [Mangapill];
+    const DOWNLOADERS: (typeof Downloader)[] = [Mangapill];
 
     let downloader: Mangapill | null = null;
-    for (const _downloader of DOWNLOADERS) {
-      if (_downloader.verify(url)) {
-        downloader = new _downloader(url);
+    for (const Downloader of DOWNLOADERS) {
+      if (Downloader.verify(url)) {
+        // @ts-expect-error fine as long as `DOWNLOADERS` doesn't contain the
+        // actual `Downloader` abstract class
+        downloader = new Downloader(url);
       }
     }
 
@@ -89,7 +94,7 @@
   ): Promise<void> {
     errors = [];
 
-    await downloader.download(chapterRange[0], chapterRange[1], handleErrors);
+    await downloader.download(chapterRange[0], chapterRange[1]);
   }
 </script>
 

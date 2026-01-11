@@ -97,10 +97,6 @@
 <style lang="scss">
   @use "/src/styles/button.scss";
 
-  .chapter-select-container {
-    max-width: 95%;
-  }
-
   .chapter-select-toggle {
     @include button.button;
 

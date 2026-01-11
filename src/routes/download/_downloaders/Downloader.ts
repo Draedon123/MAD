@@ -12,11 +12,7 @@ abstract class Downloader {
    * @param { number } to chapter index
    * @param handleError
    */
-  public abstract download(
-    from: number,
-    to: number,
-    handleError: (error: string) => unknown
-  ): Promise<void>;
+  public abstract download(from: number, to: number): Promise<void>;
 
   protected static toTitleCase(string: string): string {
     return string[0].toUpperCase() + string.slice(1);

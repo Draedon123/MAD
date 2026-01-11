@@ -82,11 +82,7 @@ class Mangapill extends Downloader {
     return arrayBuffer;
   }
 
-  public override async download(
-    from: number,
-    to: number,
-    handleError: (error: string) => unknown
-  ): Promise<void> {
+  public override async download(from: number, to: number): Promise<void> {
     console.log("Fetching chapter names");
     const chapterNames = await this.getChapterNames();
     const chaptersToDownload = chapterNames.slice(from, to + 1);
@@ -152,9 +148,9 @@ class Mangapill extends Downloader {
       pages.forEach((page, i) => {
         const url = page.getAttribute("data-src");
         if (url === null) {
-          const errorMessage = `Could not get image src for Chapter ${chapter} Page ${i + 1}`;
-          handleError(errorMessage);
-          return;
+          throw new Error(
+            `Could not get image src for Chapter ${chapter} Page ${i + 1}`
+          );
         }
 
         const promise = fetch(url, {
