@@ -9,6 +9,7 @@
   import { settings } from "../../settings/settings";
   import FlipManga from "./layouts/FlipManga.svelte";
   import ChapterSelector from "$lib/components/chapterSelection/ChapterSelector.svelte";
+  import { Window } from "@tauri-apps/api/window";
 
   let { data }: PageProps = $props();
 
@@ -17,6 +18,10 @@
   let chapterIndex = writable(0);
   let showChapters: boolean = $state(false);
   let mangaLayout = $settings["manga-layout"].value;
+
+  $effect(() => {
+    Window.getCurrent().setTitle(data.mangaName);
+  });
 
   chapterIndex.subscribe(() => {
     if (browser) {
@@ -54,10 +59,6 @@
     return manga;
   }
 </script>
-
-<svelte:head>
-  <title>MAD | Reading {data.mangaName}</title>
-</svelte:head>
 
 <main>
   {#await manga}

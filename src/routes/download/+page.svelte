@@ -1,7 +1,9 @@
 <script lang="ts">
   import ChapterSelector from "$lib/components/chapterSelection/ChapterSelector.svelte";
+  import { Window } from "@tauri-apps/api/window";
   import type { Downloader } from "./_downloaders/Downloader";
   import { Mangapill } from "./_downloaders/Mangapill";
+  import { onMount } from "svelte";
 
   let url: string = $state("");
   let statusMessage: string = $state("");
@@ -96,11 +98,12 @@
 
     await downloader.download(chapterRange[0], chapterRange[1]);
   }
+
+  onMount(() => {
+    Window.getCurrent().setTitle("MAD | Download");
+  });
 </script>
 
-<svelte:head>
-  <title>MAD | Download</title>
-</svelte:head>
 <main>
   <h1>Download</h1>
 

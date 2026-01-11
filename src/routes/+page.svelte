@@ -1,8 +1,11 @@
-<script lang="ts"></script>
+<script lang="ts">
+  import { Window } from "@tauri-apps/api/window";
+  import { onMount } from "svelte";
 
-<svelte:head>
-  <title>MAD</title>
-</svelte:head>
+  onMount(() => {
+    Window.getCurrent().setTitle("MAD | Home");
+  });
+</script>
 
 <main>
   <h1>Home</h1>

@@ -9,6 +9,7 @@
     "fs:allow-seek",
     "fs:read-all",
     "fs:allow-watch",
+    "core:window:allow-set-title",
     {
       "identifier": "fs:scope",
       "allow": [

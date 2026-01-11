@@ -3,6 +3,9 @@
   import Setting, { type Setting as SettingsType } from "./Setting.svelte";
   import { exists, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
   import { settings, defaultSettings } from "./settings";
+  import { on } from "svelte/events";
+  import { onMount } from "svelte";
+  import { Window } from "@tauri-apps/api/window";
 
   const settingsPath = "settings.json";
 
@@ -43,6 +46,10 @@
       baseDir: path.BaseDirectory.AppConfig,
     });
   }
+
+  onMount(() => {
+    Window.getCurrent().setTitle("MAD | Settings");
+  });
 </script>
 
 <main>

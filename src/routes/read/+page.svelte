@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Manga } from "$lib/Manga";
+  import { Window } from "@tauri-apps/api/window";
   import {
     BaseDirectory,
     watchImmediate,
@@ -11,6 +12,8 @@
   let unwatch: UnwatchFn | null = null;
 
   onMount(async () => {
+    Window.getCurrent().setTitle("MAD | Browse");
+
     unwatch = await watchImmediate(
       "manga",
       (event) => {
@@ -32,10 +35,6 @@
     await Promise.all((await mangaList).map((manga) => manga.destroy()));
   });
 </script>
-
-<svelte:head>
-  <title>MAD | Browse</title>
-</svelte:head>
 
 <main>
   <h1>Read</h1>
