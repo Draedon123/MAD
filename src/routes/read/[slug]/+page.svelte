@@ -18,6 +18,7 @@
   let chapterIndex = writable(0);
   let showChapters: boolean = $state(false);
   let mangaLayout = $settings["manga-layout"].value;
+  let useEnglishName = $settings["english-name"].value as boolean;
 
   $effect(() => {
     Window.getCurrent().setTitle(data.mangaName);
@@ -56,6 +57,10 @@
 
     mangaToDestroy.push(manga);
 
+    Window.getCurrent().setTitle(
+      useEnglishName ? (manga.englishName ?? manga.localName) : manga.localName
+    );
+
     return manga;
   }
 </script>
@@ -68,7 +73,9 @@
       <span class="error">Manga not found</span>
     {:else}
       <h1>
-        Reading {data.mangaName}
+        Reading {useEnglishName
+          ? (manga.englishName ?? manga.localName)
+          : manga.localName}
         {manga.chapterTable.getChapterByIndex($chapterIndex).name}
       </h1>
       <button

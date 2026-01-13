@@ -38,9 +38,12 @@
   }
 
   async function saveSettings(
-    settings: Record<string, SettingsType>
+    newSettings: Record<string, SettingsType>
   ): Promise<void> {
-    const stringified = JSON.stringify(settings);
+    const stringified = JSON.stringify(newSettings);
+
+    settings.update(() => newSettings);
+
     await writeTextFile(settingsPath, stringified, {
       baseDir: path.BaseDirectory.AppConfig,
     });
