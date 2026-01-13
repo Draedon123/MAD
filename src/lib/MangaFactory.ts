@@ -21,8 +21,8 @@ class MangaFactory {
   private chapterIndex: number;
   private chapterByteOffset: number;
   constructor(
-    private readonly primaryName: string,
-    private readonly alternativeName: string | null,
+    private readonly localName: string,
+    private readonly englishName: string | null,
     private readonly sourceURL: string,
     private readonly chapters: string[],
     private readonly coverImage: ArrayBuffer,
@@ -53,22 +53,20 @@ class MangaFactory {
     // placeholder for chapter table
     await this.file.write(new Uint8Array(this.chapterTable.byteLength));
 
-    const primaryName = uint8.fromString(this.primaryName);
-    const alternativeName = this.alternativeName
-      ? uint8.fromString(this.alternativeName)
+    const localName = uint8.fromString(this.localName);
+    const englishName = this.englishName
+      ? uint8.fromString(this.englishName)
       : null;
 
-    const primaryNameByteLength = primaryName.byteLength;
-    const alternativeNameByteLength = alternativeName
-      ? alternativeName.byteLength
-      : 0;
+    const localNameByteLength = localName.byteLength;
+    const englishNameByteLength = englishName ? englishName.byteLength : 0;
 
-    await this.file.write(uint8.fromUint16(primaryNameByteLength));
-    await this.file.write(primaryName);
+    await this.file.write(uint8.fromUint16(localNameByteLength));
+    await this.file.write(localName);
 
-    await this.file.write(uint8.fromUint16(alternativeNameByteLength));
-    if (alternativeName !== null) {
-      await this.file.write(alternativeName);
+    await this.file.write(uint8.fromUint16(englishNameByteLength));
+    if (englishName !== null) {
+      await this.file.write(englishName);
     }
 
     const sourceURL = uint8.fromString(this.sourceURL);
@@ -81,8 +79,8 @@ class MangaFactory {
     await this.file.write(new Uint8Array(this.coverImage));
 
     const metaDataByteLength =
-      primaryName.byteLength +
-      alternativeNameByteLength +
+      localName.byteLength +
+      englishNameByteLength +
       sourceURLByteLength +
       3 * Uint16Array.BYTES_PER_ELEMENT +
       Uint32Array.BYTES_PER_ELEMENT +

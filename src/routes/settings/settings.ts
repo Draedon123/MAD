@@ -10,6 +10,12 @@ const defaultSettings: Record<string, Setting> = {
     value: "flip",
     possibleValues: new Set(["flip", "scroll"]),
   },
+  "english-name": {
+    name: "Use English Name",
+    type: "boolean",
+    description: "Prefer the English name over the local name",
+    value: false,
+  },
 };
 
 const settings: Writable<Record<string, Setting>> = writable(defaultSettings);

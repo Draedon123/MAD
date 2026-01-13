@@ -7,6 +7,7 @@
     type UnwatchFn,
   } from "@tauri-apps/plugin-fs";
   import { onDestroy, onMount } from "svelte";
+  import { settings } from "../settings/settings";
 
   let mangaList: Promise<Manga[]> = $state(Manga.getAllInDirectory());
   let unwatch: UnwatchFn | null = null;
@@ -43,7 +44,7 @@
     Loading manga...
   {:then mangaList}
     <div class="mangaContainer">
-      {#each mangaList as manga (manga.primaryName)}
+      {#each mangaList as manga (manga.localName)}
         {@render MangaComponent(manga)}
       {:else}
         No manga downloaded. Download manga from the
@@ -56,13 +57,16 @@
 </main>
 
 {#snippet MangaComponent(manga: Manga)}
-  <a class="manga" href="/read/{encodeURIComponent(manga.primaryName)}">
+  {@const preferredName = $settings["english-name"].value
+    ? (manga.englishName ?? manga.localName)
+    : manga.localName}
+  <a class="manga" href="/read/{encodeURIComponent(manga.localName)}">
     <img
       class="cover-image"
       src={manga.coverImageSrc}
-      alt="{manga.primaryName} Cover Image" />
+      alt="{preferredName} Cover Image" />
 
-    <span class="manga-name">{manga.primaryName}</span>
+    <span class="manga-name">{preferredName}</span>
   </a>
 {/snippet}
 

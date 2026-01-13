@@ -8,6 +8,7 @@
   import { appDataDir } from "@tauri-apps/api/path";
   import { onDestroy, onMount } from "svelte";
   import { checkAndMkdir } from "$lib/fsUtils";
+  import { settings } from "./settings/settings";
 
   let { children }: WithChildren = $props();
   let manga: Promise<Manga[]> = $state(Manga.getAllInDirectory());
@@ -46,9 +47,12 @@
         <NavigationLink href="/read">Read</NavigationLink>
       {/snippet}
       {#await manga then mangaList}
-        {#each mangaList as manga (manga.primaryName)}
-          <NavigationLink href="/read/{encodeURIComponent(manga.primaryName)}"
-            >{manga.primaryName}</NavigationLink>
+        {#each mangaList as manga (manga.localName)}
+          {@const preferredName = $settings["english-name"].value
+            ? (manga.englishName ?? manga.localName)
+            : manga.localName}
+          <NavigationLink href="/read/{encodeURIComponent(manga.localName)}"
+            >{preferredName}</NavigationLink>
         {/each}
       {/await}
     </NavigationSection>

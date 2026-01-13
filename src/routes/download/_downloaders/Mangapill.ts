@@ -26,23 +26,23 @@ class Mangapill extends Downloader {
     return webpage;
   }
 
-  public override async getPrimaryMangaName(): Promise<string> {
-    const primaryName = (await this.getWebpage()).querySelector(
+  public override async getLocalMangaName(): Promise<string> {
+    const localName = (await this.getWebpage()).querySelector(
       "h1"
     )?.textContent;
 
-    if (primaryName === undefined) {
+    if (localName === undefined) {
       throw new Error("Could not find primary manga name");
     }
 
-    return primaryName;
+    return localName;
   }
 
-  public override async getAlternativeMangaName(): Promise<string | null> {
-    const alternativeName = (await this.getWebpage()).querySelector("h1")
+  public override async getEnglishMangaName(): Promise<string | null> {
+    const englishName = (await this.getWebpage()).querySelector("h1")
       ?.parentElement?.children[1].textContent;
 
-    return alternativeName ?? null;
+    return englishName ?? null;
   }
 
   public override async getChapterNames(): Promise<string[]> {
@@ -97,10 +97,10 @@ class Mangapill extends Downloader {
     const chapterNames = await this.getChapterNames();
     const chaptersToDownload = chapterNames.slice(from, to + 1);
 
-    const primaryName = await this.getPrimaryMangaName();
-    const alternativeName = await this.getAlternativeMangaName();
+    const localName = await this.getLocalMangaName();
+    const englishName = await this.getEnglishMangaName();
     const coverImage = await this.getCoverImage();
-    const mangaFilePath = await path.join("manga", `${primaryName}.mga`);
+    const mangaFilePath = await path.join("manga", `${localName}.mga`);
 
     const webpage = await this.getWebpage();
     const chapterContainer =
@@ -116,8 +116,8 @@ class Mangapill extends Downloader {
     );
 
     const factory = new MangaFactory(
-      primaryName,
-      alternativeName,
+      localName,
+      englishName,
       this.url,
       chaptersToDownload,
       coverImage,

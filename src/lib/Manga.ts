@@ -27,8 +27,8 @@ class Manga {
   private readonly fileReader: FileReader;
   private readonly cachedChapterOrder: number[];
   private readonly maxCacheSize: number;
-  public primaryName!: string;
-  public alternativeName!: string | null;
+  public localName!: string;
+  public englishName!: string | null;
   public sourceURL!: string;
   public chapterTable!: ChapterTable;
   public coverImageSrc!: string;
@@ -62,13 +62,13 @@ class Manga {
       Manga.HEADER_BYTE_SIZE + this.chapterTable.byteLength
     );
 
-    const primaryNameByteLength = await this.fileReader.readUint16();
-    const primaryName = await this.fileReader.readString(primaryNameByteLength);
-    const alternativeNameByteLength = await this.fileReader.readUint16();
-    const alternativeName =
-      alternativeNameByteLength === 0
+    const localNameByteLength = await this.fileReader.readUint16();
+    const localName = await this.fileReader.readString(localNameByteLength);
+    const englishNameByteLength = await this.fileReader.readUint16();
+    const englishName =
+      englishNameByteLength === 0
         ? null
-        : await this.fileReader.readString(alternativeNameByteLength);
+        : await this.fileReader.readString(englishNameByteLength);
 
     const sourceURLByteLength = await this.fileReader.readUint16();
     const sourceURL = await this.fileReader.readString(sourceURLByteLength);
@@ -78,8 +78,8 @@ class Manga {
     const blob = new Blob([arrayBuffer]);
     const coverImageSrc = URL.createObjectURL(blob);
 
-    this.primaryName = primaryName;
-    this.alternativeName = alternativeName;
+    this.localName = localName;
+    this.englishName = englishName;
     this.sourceURL = sourceURL;
     this.coverImageSrc = coverImageSrc;
 

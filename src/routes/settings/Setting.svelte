@@ -2,12 +2,17 @@
   type Setting = {
     name: string;
     description: string;
-  } & StringSetting;
+  } & (StringSetting | BooleanSetting);
 
   type StringSetting = {
     type: "string";
     value: string;
     possibleValues?: Set<string>;
+  };
+
+  type BooleanSetting = {
+    type: "boolean";
+    value: boolean;
   };
 
   export type { Setting };
@@ -38,6 +43,12 @@
       <input name={inputName} type="text" bind:value={setting.value} />
     {/if}
   </label>
+{:else if setting.type === "boolean"}
+  <label title={setting.description}>
+    {setting.name}:
+
+    <input type="checkbox" bind:checked={setting.value} />
+  </label>
 {/if}
 
 <style lang="scss">
@@ -53,5 +64,9 @@
     height: 1.5em;
     padding: 0 1ch;
     margin-left: 0.5ch;
+  }
+
+  label {
+    display: block;
   }
 </style>
