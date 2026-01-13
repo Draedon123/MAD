@@ -200,6 +200,8 @@ class Manga {
       return;
     }
 
+    console.log(`Destroying ${this.localName}`);
+
     for (const chapter of Object.values(this.cache)) {
       this.cleanCache(chapter.header.name);
     }

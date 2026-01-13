@@ -1,6 +1,12 @@
 <script lang="ts">
   import { Manga } from "$lib/Manga";
-  import { exists, open } from "@tauri-apps/plugin-fs";
+  import {
+    exists,
+    open,
+    readFile,
+    readTextFile,
+    writeTextFile,
+  } from "@tauri-apps/plugin-fs";
   import type { PageProps } from "./$types";
   import * as paths from "@tauri-apps/api/path";
   import { browser } from "$app/environment";
@@ -10,24 +16,30 @@
   import FlipManga from "./layouts/FlipManga.svelte";
   import ChapterSelector from "$lib/components/chapterSelection/ChapterSelector.svelte";
   import { Window } from "@tauri-apps/api/window";
+  import { path } from "@tauri-apps/api";
 
   let { data }: PageProps = $props();
 
   let manga = $derived(getManga(data.mangaName));
   const mangaToDestroy: Manga[] = $state([]);
-  let chapterIndex = writable(0);
+  let chapterIndex = writable(-1);
   let showChapters: boolean = $state(false);
   let mangaLayout = $settings["manga-layout"].value;
   let useEnglishName = $settings["english-name"].value as boolean;
 
-  $effect(() => {
-    Window.getCurrent().setTitle(data.mangaName);
-  });
-
-  chapterIndex.subscribe(() => {
-    if (browser) {
-      document.querySelector("main")?.scrollTo(0, 0);
+  chapterIndex.subscribe(async (chapterIndex) => {
+    if (!browser || chapterIndex === -1) {
+      return;
     }
+
+    document.querySelector("main")?.scrollTo(0, 0);
+    const progress = await getProgress();
+
+    progress[data.mangaName] = chapterIndex;
+
+    writeTextFile("progress.json", JSON.stringify(progress), {
+      baseDir: paths.BaseDirectory.AppData,
+    });
   });
 
   $effect(() => {
@@ -52,16 +64,38 @@
     const manga = new Manga(file);
 
     await manga.initialise();
-
-    $chapterIndex = 0;
-
     mangaToDestroy.push(manga);
 
     Window.getCurrent().setTitle(
       useEnglishName ? (manga.englishName ?? manga.localName) : manga.localName
     );
 
+    const progress = await getProgress();
+    $chapterIndex = progress[mangaName] ?? 0;
+
     return manga;
+  }
+
+  async function getProgress(): Promise<Record<string, number>> {
+    const progressFilePath = await path.resolve(
+      await path.appDataDir(),
+      "progress.json"
+    );
+
+    if (!exists(progressFilePath)) {
+      writeTextFile(progressFilePath, "{}");
+    }
+
+    let progress: Record<string, number>;
+
+    try {
+      progress = JSON.parse(await readTextFile(progressFilePath));
+    } catch (error) {
+      // corrupted data
+      progress = {};
+    }
+
+    return progress;
   }
 </script>
 
