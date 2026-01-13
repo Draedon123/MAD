@@ -26,3 +26,4 @@ tauri-plugin-log = "2.0.0-rc"
 tauri-plugin-fs = { version = "2", features = ["watch"] }
 tauri-plugin-dialog = "2"
 tauri-plugin-http = { version = "2.5.5", features = ["unsafe-headers"] }
+paste = "1.0.15"
