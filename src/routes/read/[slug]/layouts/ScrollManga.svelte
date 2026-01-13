@@ -22,12 +22,35 @@
         chapterIndex--;
         break;
       }
+
       case "ArrowRight": {
         if (chapterIndex >= manga.chapterTable.chapters.length - 1) {
           break;
         }
 
         chapterIndex++;
+        break;
+      }
+
+      case "Home": {
+        const mainElement = document.querySelector("main");
+
+        if (mainElement === null) {
+          throw new Error("Could not find main element");
+        }
+
+        mainElement.scroll(0, 0);
+        break;
+      }
+
+      case "End": {
+        const mainElement = document.querySelector("main");
+
+        if (mainElement === null) {
+          throw new Error("Could not find main element");
+        }
+
+        mainElement.scroll(0, mainElement.scrollHeight);
         break;
       }
     }
