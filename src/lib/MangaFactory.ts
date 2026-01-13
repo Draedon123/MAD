@@ -21,7 +21,9 @@ class MangaFactory {
   private chapterIndex: number;
   private chapterByteOffset: number;
   constructor(
-    private readonly name: string,
+    private readonly primaryName: string,
+    private readonly alternativeName: string | null,
+    private readonly sourceURL: string,
     private readonly chapters: string[],
     private readonly coverImage: ArrayBuffer,
     private readonly path: string
@@ -51,11 +53,40 @@ class MangaFactory {
     // placeholder for chapter table
     await this.file.write(new Uint8Array(this.chapterTable.byteLength));
 
+    const primaryName = uint8.fromString(this.primaryName);
+    const alternativeName = this.alternativeName
+      ? uint8.fromString(this.alternativeName)
+      : null;
+
+    const primaryNameByteLength = primaryName.byteLength;
+    const alternativeNameByteLength = alternativeName
+      ? alternativeName.byteLength
+      : 0;
+
+    await this.file.write(uint8.fromUint16(primaryNameByteLength));
+    await this.file.write(primaryName);
+
+    await this.file.write(uint8.fromUint16(alternativeNameByteLength));
+    if (alternativeName !== null) {
+      await this.file.write(alternativeName);
+    }
+
+    const sourceURL = uint8.fromString(this.sourceURL);
+    const sourceURLByteLength = sourceURL.byteLength;
+
+    await this.file.write(uint8.fromUint16(sourceURLByteLength));
+    await this.file.write(sourceURL);
+
     await this.file.write(uint8.fromUint32(this.coverImage.byteLength));
     await this.file.write(new Uint8Array(this.coverImage));
 
     const metaDataByteLength =
-      Uint32Array.BYTES_PER_ELEMENT + this.coverImage.byteLength;
+      primaryName.byteLength +
+      alternativeNameByteLength +
+      sourceURLByteLength +
+      3 * Uint16Array.BYTES_PER_ELEMENT +
+      Uint32Array.BYTES_PER_ELEMENT +
+      this.coverImage.byteLength;
 
     this.currentChapter = this.chapterTable.getChapterByIndex(0);
     this.chapterByteOffset =

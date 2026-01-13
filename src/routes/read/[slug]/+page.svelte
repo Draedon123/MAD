@@ -48,7 +48,7 @@
     }
 
     const file = await open(filePath, { baseDir: paths.BaseDirectory.AppData });
-    const manga = new Manga(mangaName, file);
+    const manga = new Manga(file);
 
     await manga.initialise();
 

@@ -46,9 +46,9 @@
         <NavigationLink href="/read">Read</NavigationLink>
       {/snippet}
       {#await manga then mangaList}
-        {#each mangaList as manga (manga.name)}
-          <NavigationLink href="/read/{encodeURIComponent(manga.name)}"
-            >{manga.name}</NavigationLink>
+        {#each mangaList as manga (manga.primaryName)}
+          <NavigationLink href="/read/{encodeURIComponent(manga.primaryName)}"
+            >{manga.primaryName}</NavigationLink>
         {/each}
       {/await}
     </NavigationSection>

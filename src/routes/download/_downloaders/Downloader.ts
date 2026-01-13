@@ -5,7 +5,11 @@ abstract class Downloader {
   public static verify(url: string): boolean {
     throw new Error("Method not implemented");
   }
-  public abstract getMangaName(): Promise<string> | string;
+  public abstract getPrimaryMangaName(): Promise<string> | string;
+  public abstract getAlternativeMangaName():
+    | Promise<string | null>
+    | string
+    | null;
   public abstract getChapterNames(): Promise<string[]>;
   /**
    * @param { number } from chapter index

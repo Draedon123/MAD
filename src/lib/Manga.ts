@@ -27,16 +27,16 @@ class Manga {
   private readonly fileReader: FileReader;
   private readonly cachedChapterOrder: number[];
   private readonly maxCacheSize: number;
+  public primaryName!: string;
+  public alternativeName!: string | null;
+  public sourceURL!: string;
   public chapterTable!: ChapterTable;
   public coverImageSrc!: string;
   private pagesRequest: Promise<string[]> | null;
   private initialised: boolean;
   private destroyed: boolean;
 
-  constructor(
-    public readonly name: string,
-    private readonly file: FileHandle
-  ) {
+  constructor(private readonly file: FileHandle) {
     this.cache = new Map();
     this.destroyed = false;
     this.fileReader = new FileReader(file);
@@ -58,21 +58,32 @@ class Manga {
       return;
     }
 
-    this.coverImageSrc = await this.fetchCoverImageSrc();
-    this.initialised = true;
-  }
-
-  private async fetchCoverImageSrc(): Promise<string> {
     await this.fileReader.setOffset(
       Manga.HEADER_BYTE_SIZE + this.chapterTable.byteLength
     );
 
-    const imageSize = await this.fileReader.readUint32();
-    const arrayBuffer = await this.fileReader.readBytes(imageSize);
-    const blob = new Blob([arrayBuffer]);
-    const url = URL.createObjectURL(blob);
+    const primaryNameByteLength = await this.fileReader.readUint16();
+    const primaryName = await this.fileReader.readString(primaryNameByteLength);
+    const alternativeNameByteLength = await this.fileReader.readUint16();
+    const alternativeName =
+      alternativeNameByteLength === 0
+        ? null
+        : await this.fileReader.readString(alternativeNameByteLength);
 
-    return url;
+    const sourceURLByteLength = await this.fileReader.readUint16();
+    const sourceURL = await this.fileReader.readString(sourceURLByteLength);
+
+    const coverImageSize = await this.fileReader.readUint32();
+    const arrayBuffer = await this.fileReader.readBytes(coverImageSize);
+    const blob = new Blob([arrayBuffer]);
+    const coverImageSrc = URL.createObjectURL(blob);
+
+    this.primaryName = primaryName;
+    this.alternativeName = alternativeName;
+    this.sourceURL = sourceURL;
+    this.coverImageSrc = coverImageSrc;
+
+    this.initialised = true;
   }
 
   public async dump(): Promise<void> {
@@ -240,12 +251,9 @@ class Manga {
   }
 
   public static async fromFilePath(mangaPath: string): Promise<Manga> {
-    const relativePath = mangaPath.split(path.sep()).at(-1) as string;
-    const name = relativePath.slice(0, -".mga".length);
-
     const file = await open(mangaPath);
 
-    const manga = new Manga(name, file);
+    const manga = new Manga(file);
     await manga.initialise();
 
     return manga;

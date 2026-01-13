@@ -34,6 +34,12 @@ array of:
 
 ## Metadata
 
+uint16 - primary name byte length
+primary name, utf-8 encoded
+uint16 - alternative name byte length
+alternative name, utf-8 encoded
+uint16 - source url byte length
+source url
 uint32 - cover image size
 cover image
 

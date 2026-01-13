@@ -43,7 +43,7 @@
     Loading manga...
   {:then mangaList}
     <div class="mangaContainer">
-      {#each mangaList as manga (manga.name)}
+      {#each mangaList as manga (manga.primaryName)}
         {@render MangaComponent(manga)}
       {:else}
         No manga downloaded. Download manga from the
@@ -56,13 +56,13 @@
 </main>
 
 {#snippet MangaComponent(manga: Manga)}
-  <a class="manga" href="/read/{encodeURIComponent(manga.name)}">
+  <a class="manga" href="/read/{encodeURIComponent(manga.primaryName)}">
     <img
       class="cover-image"
       src={manga.coverImageSrc}
-      alt="{manga.name} Cover Image" />
+      alt="{manga.primaryName} Cover Image" />
 
-    <span class="manga-name">{manga.name}</span>
+    <span class="manga-name">{manga.primaryName}</span>
   </a>
 {/snippet}
 
