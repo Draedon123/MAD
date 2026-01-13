@@ -9,7 +9,7 @@ macro_rules! impl_read_number (( $($int:ident),* ) => {
     $(
       paste! {
         impl BufferReader {
-          pub fn [<read_ $int>](&mut self, value: $int) -> $int {
+          pub fn [<read_ $int>](&mut self) -> $int {
             let value = &self.buffer[self.offset..(self.offset + std::mem::size_of::<$int>())];
 
             self.offset += std::mem::size_of::<$int>();
@@ -36,7 +36,7 @@ impl BufferReader {
     string
   }
 
-  pub fn read_string(&self, byte_length: usize) -> String {
+  pub fn read_string(&mut self, byte_length: usize) -> String {
     String::from_utf8(self.read_u8_array(byte_length).to_vec())
       .expect("Should have been able to read string")
   }
