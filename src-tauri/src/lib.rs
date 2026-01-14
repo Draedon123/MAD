@@ -1,7 +1,7 @@
-mod BufferReader;
-mod BufferWriter;
-mod ChapterTable;
-mod FileReader;
+mod buffer_reader;
+mod buffer_writer;
+mod chapter_table;
+mod file_reader;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

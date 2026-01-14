@@ -1,4 +1,4 @@
-use crate::{BufferReader::BufferReader, BufferWriter::BufferWriter, FileReader::FileReader};
+use crate::{buffer_reader::BufferReader, buffer_writer::BufferWriter, file_reader::FileReader};
 use std::fs;
 
 struct ChapterHeader {
